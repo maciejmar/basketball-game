@@ -1,0 +1,44 @@
+.summary-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    height: 100vh;
+    background: linear-gradient( #2595a8, rgba(194, 31, 2, 0.815)), url('/assets/basket-shots-advertising.jpg');
+    background-size: 140%;
+    opacity:90%;
+  }
+  
+  .summary-card {
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 20px;
+    opacity:55%;
+  }
+  
+  .card-body {
+    text-align: center;
+  }
+  
+  .league-schedule {
+    width: 100%;
+    max-width: 600px;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 10px;
+  }
+  
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+  }
+  
+  th {
+    background-color: #f2f2f2;
+  }
+  

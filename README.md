@@ -1,4 +1,4 @@
-# BasketballGame
+# BasketballGame is a basketball shots for two players game. It is possible to play with computer. 
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.3.0.
 

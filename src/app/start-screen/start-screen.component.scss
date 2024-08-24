@@ -1,0 +1,85 @@
+.start-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100vh;
+    background: url('/assets/basket-shots-advertising.jpg') no-repeat center center;
+    background-size: cover;
+    text-align: center;
+    background-color: #000; // Fallback background color to help debug
+  
+    .menu-card {
+      background-color: rgba(255, 255, 255, 0.5); // Half transparent background
+      border: none;
+      margin-left:50%;
+      margin-top:13%;
+      
+      transition: background-color 2s; // Transition for background color change
+      animation: changeBackground 5s infinite;
+      width:20%;
+  
+      .card-body {
+        text-align: center;
+        display:flex;
+        flex-direction: column;
+        justify-content: center;
+        
+  
+        .card-title {
+          margin: 2%;
+          font-size: 1.5em;
+          color: #9ea881;
+        }
+  
+        .btn {
+          margin: 1%;
+          padding: 2% 3%;
+          font-size: 1em;
+          color: #fff;
+          transition: background-color 0.3s;
+          &:hover {
+            color: #fff;
+          }
+  
+          &.btn-primary {
+            background-color: #007bff;
+            border: none;
+            &:hover {
+              background-color: #0056b3;
+            }
+          }
+  
+          &.btn-danger {
+            background-color: #ff4d4d;
+            border: none;
+            &:hover {
+              background-color: #cc0000;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // Animation for changing background color
+  @keyframes changeBackground {
+    0% {
+      background-color: rgba(255, 255, 255, 0.5);
+    }
+    25% {
+      background-color: rgba(255, 200, 200, 0.5);
+    }
+    50% {
+      background-color: rgba(200, 255, 200, 0.5);
+    }
+    75% {
+      background-color: rgba(200, 200, 255, 0.5);
+    }
+    100% {
+      background-color: rgba(255, 255, 255, 0.5);
+    }
+  }
+  .form-select{
+    size:10%;
+  }
+  
