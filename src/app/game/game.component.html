@@ -1,0 +1,66 @@
+<div class="game-container">
+  <div class="canvas-container">
+    <canvas #gameCanvas></canvas>
+    <button class="show-scores-button" (click)="scrollToScores()" (touchend)="scrollToScores($event)">
+      <div class="img-buttons">
+        <img class="img-buttons" src="../../assets/scoreButton.png" />
+      </div>
+    </button>
+    <div class="points">
+      {{ team1Points }}:{{ team2Points }}
+    </div>
+  </div>
+  <div class="controls">
+    <button class="charge-button" 
+            (mousedown)="startCharge()" (mouseup)="stopCharge()" 
+            (touchstart)="startCharge($event)" (touchend)="stopCharge($event)">
+      <div class="img-buttons">
+        <img src="../../assets/powerButton.png" class="img-buttons"/>
+      </div>
+    </button>
+    <button class="angle-button" 
+            (mousedown)="startAngleCharge()" (mouseup)="stopAngleCharge()" 
+            (touchstart)="startAngleCharge($event)" (touchend)="stopAngleCharge($event)">
+      <div class="img-buttons">
+        <img src="../../assets/angleButton.png" class="img-buttons"/>
+      </div>
+    </button>
+  </div>
+  <div class="score-table">
+    <button (click)="scrollToGame()" (touchend)="scrollToGame($event)">Back to Game</button>
+    <table>
+      <tr>
+        <th>Team A</th>
+        <th>Shots</th>
+        <th>Points</th>
+      </tr>
+      <tr *ngFor="let player of team1Players; let i = index" [class.flashing]="flashing && currentTeam === 1 && i === currentPlayerIndex">
+        <td [class.currentPlayer]="currentTeam === 1 && i === currentPlayerIndex">{{ player.name }}</td>
+        <td>{{ player.shots }}</td>
+        <td>{{ player.points }}</td>
+      </tr>
+      <tr>
+        <td>Total</td>
+        <td></td>
+        <td>{{ team1Points }}</td>
+      </tr>
+    </table>
+    <table>
+      <tr>
+        <th>Team B</th>
+        <th>Shots</th>
+        <th>Points</th>
+      </tr>
+      <tr *ngFor="let player of team2Players; let i = index" [class.flashing]="flashing && currentTeam === 2 && i === currentPlayerIndex">
+        <td [class.currentPlayer]="currentTeam === 2 && i === currentPlayerIndex">{{ player.name }}</td>
+        <td>{{ player.shots }}</td>
+        <td>{{ player.points }}</td>
+      </tr>
+      <tr>
+        <td>Total</td>
+        <td></td>
+        <td>{{ team2Points }}</td>
+      </tr>
+    </table>
+  </div>
+</div>

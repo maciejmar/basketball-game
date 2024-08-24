@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">basketballShots</string>
+    <string name="title_activity_main">basketballShots</string>
+    <string name="package_name">com.basketballshots.app</string>
+    <string name="custom_url_scheme">com.basketballshots.app</string>
+</resources>
