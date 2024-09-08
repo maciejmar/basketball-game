@@ -1,43 +1,43 @@
 <div class="summary-container">
-  <div class="card summary-card">
+    <div class="card summary-card">
       <div class="card-body">
-          <h5 class="card-title">Game Summary</h5>
-          <p class="card-text">{{ summaryMessage }}</p> <!-- Display the game summary message -->
-          <table class="table">
-              <thead>
-                  <tr>
-                      <th>{{ team1.name }}</th>
-                      <th>Shots</th>
-                      <th>Points</th>
-                  </tr>
-              </thead>
-              <tbody>
-                  <tr *ngFor="let player of team1.players">
-                      <td>{{ player.name }}</td>
-                      <td>{{ player.shots }}</td>
-                      <td>{{ player.points }}</td>
-                  </tr>
-              </tbody>
-          </table>
-          <table class="table">
-              <thead>
-                  <tr>
-                      <th>{{ team2.name }}</th>
-                      <th>Shots</th>
-                      <th>Points</th>
-                  </tr>
-              </thead>
-              <tbody>
-                  <tr *ngFor="let player of team2.players">
-                      <td>{{ player.name }}</td>
-                      <td>{{ player.shots }}</td>
-                      <td>{{ player.points }}</td>
-                  </tr>
-              </tbody>
-          </table>
-          
-          <button class="btn btn-secondary" (click)="goToMenu()">Return to Menu</button> <!-- Button to return to the menu -->
-          <button class="btn btn-primary" (click)="quitApp()">Quit</button> <!-- Button to play the next game -->
+        <h5 class="card-title">Game Summary</h5>
+        <p class="card-text">{{ summaryMessage }}</p>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>{{ team1.name }}</th>
+              <th>Shots</th>
+              <th>Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let player of team1.players">
+              <td>{{ player.name }}</td>
+              <td>{{ player.shots }}</td>
+              <td>{{ player.points }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>{{ team2.name }}</th>
+              <th>Shots</th>
+              <th>Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let player of team2.players">
+              <td>{{ player.name }}</td>
+              <td>{{ player.shots }}</td>
+              <td>{{ player.points }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <button class="btn btn-secondary" (click)="goToMenu()">Return to Menu</button>
+        <button class="btn btn-primary" (click)="quitApp()">Quit</button>
       </div>
+    </div>
   </div>
-</div>
+  
