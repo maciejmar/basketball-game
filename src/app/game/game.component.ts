@@ -291,7 +291,7 @@ export class GameComponent implements OnInit {
     this.ballScored = false;
     this.chargePower = 0;
     this.ballExitedTop = false;
-    this.shotInProgress = true; // Mark shot as beeing in progress
+    this.shotInProgress = true; // Mark the shot as beeing in progress
   }
 
   checkBasket() {
