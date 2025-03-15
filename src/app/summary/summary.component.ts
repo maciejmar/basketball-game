@@ -1,13 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy} from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms'; // Import FormsModule
 import { App } from '@capacitor/app';
-
-interface Player {
-  name: string;
-  shots: number;
-  points: number;
-}
+import { Player } from '../models/player';
+import { GameStateService } from '../services/game-state.service';
+import { VolumeService } from '../services/volume.service';
 
 interface Team {
   name: string;
@@ -17,35 +15,81 @@ interface Team {
 @Component({
   selector: 'app-summary',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule,FormsModule],
   templateUrl: './summary.component.html',
   styleUrls: ['./summary.component.scss'],
 })
 export class SummaryComponent implements OnInit {
-  team1: Team = { name: 'Team 1', players: [] };
-  team2: Team = { name: 'Team 2', players: [] };
-  team1Points: number = 0;
-  team2Points: number = 0;
+  // team1: Team = { name: 'Team 1', players: [] };
+  // team2: Team = { name: 'Team 2', players: [] };
+  // team1Points: number = 0;
+  // team2Points: number = 0;
   summaryMessage: string = '';
+  //public musicVolume = 0; // Default volume
+  private backgroundMusic: HTMLAudioElement | null = null;
+  public isMusicPlaying = false;
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router, 
+    private gameStateService: GameStateService,
+    private volumeService: VolumeService
+  ) {}
+
+   // Getter and Setter for team1Name
+   get team1Name() { return this.gameStateService.team1.name; }
+   set team1Name(value: string) { this.gameStateService.team1.name = value; }
+ 
+   // Getter and Setter for team2Name
+   get team2Name() { return this.gameStateService.team2.name; }
+   set team2Name(value: string) { this.gameStateService.team2.name = value; }
+ 
+   // Getter and Setter for team1Players
+   get team1Players() { return this.gameStateService.team1.players; }
+   set team1Players(value: Player[]) { this.gameStateService.team1.players = value; }
+ 
+   // Getter and Setter for team2Players
+   get team2Players() { return this.gameStateService.team2.players; }
+   set team2Players(value: Player[]) { this.gameStateService.team2.players = value; }
+ 
+   // Getter and Setter for team1Points
+   get team1Points() { return this.gameStateService.team1Points; }
+   set team1Points(value: number) { this.gameStateService.team1Points = value; }
+ 
+   // Getter and Setter for team2Points
+   get team2Points() { return this.gameStateService.team2Points; }
+   set team2Points(value: number) { this.gameStateService.team2Points = value; }
+
+  // Getter and Setter for team1
+  get team1(): Team { return this.gameStateService.team1; }
+  set team1(value: Team) { this.gameStateService.team1 = value; }
+
+  // Getter and Setter for team2
+  get team2(): Team { return this.gameStateService.team2; }
+  set team2(value: Team) { this.gameStateService.team2 = value; }
+
 
   ngOnInit(): void {
     this.loadGameSummary();
+    this.initializeBackgroundMusic();
+    // Subscribe to volume changes
+    this.volumeService.volume$.subscribe(volume => {
+    if (this.backgroundMusic) {
+      this.backgroundMusic.volume = volume;
+    }
+  });
   }
 
   loadGameSummary(): void {
-    const summaryData = history.state;
-    if (summaryData && summaryData.team1 && summaryData.team2) {
-      this.team1 = summaryData.team1;
-      this.team2 = summaryData.team2;
-      this.team1Points = summaryData.team1Points;
-      this.team2Points = summaryData.team2Points;
-      this.summaryMessage = `Game over! ${this.team1.name}-${this.team2.name} - ${this.team1Points} : ${this.team2Points}`;
-    } else {
-      console.error('No game summary data available or incorrect format', summaryData);
-    }
+  if (this.gameStateService.team1 && this.gameStateService.team2) {
+    this.team1 = this.gameStateService.team1;
+    this.team2 = this.gameStateService.team2;
+    this.team1Points = this.gameStateService.team1Points;
+    this.team2Points = this.gameStateService.team2Points;
+    this.summaryMessage = `${this.team1.name} - ${this.team2.name}: ${this.team1Points} : ${this.team2Points}`;
+  } else {
+    console.error('No game summary data available or incorrect format');
   }
+}
 
   quitApp() {
     if (window.confirm("Are you sure you want to quit?")) {
@@ -54,6 +98,66 @@ export class SummaryComponent implements OnInit {
   }
 
   goToMenu(): void {
+    console.log('now reset is been doing');
+    this.gameStateService.resetGameData();
     this.router.navigate(['/']);
+    //this.gameStateService.resetGameData();
+    
   }
+
+  private initializeBackgroundMusic(): void {
+    this.backgroundMusic = new Audio('assets/drumms.ogg');
+    this.backgroundMusic.loop = true; // Set to loop if desired
+    // Set initial volume based on the service
+    this.backgroundMusic.volume = this.volumeService.getVolume();
+    this.volumeService.setVolume(0)
+    // Begin playback when user interacts
+    document.addEventListener('click', this.startMusicOnUserInteraction);
+    document.addEventListener('keydown', this.startMusicOnUserInteraction);
+  }
+
+  private startMusicOnUserInteraction = () => {
+    if (this.backgroundMusic) {
+      this.backgroundMusic.play().catch(error => {
+        console.error('Error playing background music:', error);
+      });
+    }
+    // Remove the event listeners after starting music
+    document.removeEventListener('click', this.startMusicOnUserInteraction);
+    document.removeEventListener('keydown', this.startMusicOnUserInteraction);
+  }
+
+  private stopBackgroundMusic(): void {
+    if (this.backgroundMusic) {
+      this.backgroundMusic.pause();
+      this.backgroundMusic.currentTime = 0;
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.stopBackgroundMusic();
+    
+  }
+
+  // updateMusicVolume(): void {
+  //   if (this.backgroundMusic) {
+  //     this.backgroundMusic.volume = this.musicVolume;
+  //   }
+  // }
+  
+  toggleMusic(): void {
+    if (this.backgroundMusic) {
+      if (this.isMusicPlaying) {
+        this.backgroundMusic.pause();
+        this.isMusicPlaying = false;
+      } else {
+        this.backgroundMusic.play().then(() => {
+          this.isMusicPlaying = true;
+        }).catch(error => {
+          console.error('Error playing background music:', error);
+        });
+      }
+    }
+  }
+
 }

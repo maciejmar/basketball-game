@@ -1,0 +1,24 @@
+<div class="volume-control">
+    <button (click)="toggleMute()">
+      <img
+        *ngIf="isMuted"
+        src="assets/volume-mute.png"
+        alt="Unmute"
+        class="volume-icon"
+      />
+      <img
+        *ngIf="!isMuted"
+        src="assets/volume-up.png"
+        alt="Mute"
+        class="volume-icon"
+      />
+    </button>
+    <input
+      type="range"
+      min="0"
+      max="1"
+      step="0.01"
+      [value]="volume"
+      (input)="onVolumeChange($event)"
+    />
+  </div>

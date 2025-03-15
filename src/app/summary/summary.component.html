@@ -29,15 +29,19 @@
           </thead>
           <tbody>
             <tr *ngFor="let player of team2.players">
-              <td>{{ player.name }}</td>
-              <td>{{ player.shots }}</td>
-              <td>{{ player.points }}</td>
+              <td>{{player.name }}</td>
+              <td>{{player.shots}}</td>
+              <td>{{player.points}}</td>
             </tr>
           </tbody>
         </table>
         <button class="btn btn-secondary" (click)="goToMenu()">Return to Menu</button>
-        <button class="btn btn-primary" (click)="quitApp()">Quit</button>
+        <button class="btn btn-primary button-margin" (click)="quitApp()">Quit</button>
       </div>
     </div>
+    <!-- <div class="card volume-card">
+      <label for="volume">Volume:</label>
+          <input id="volume" type="range" min="0" max="1" step="0.1" [(ngModel)]="musicVolume" (change)="updateMusicVolume()" />
+    </div> -->
   </div>
   

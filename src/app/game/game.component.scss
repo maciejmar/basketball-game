@@ -1,99 +1,146 @@
 .game-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2%;
-  overflow: hidden;
+  // display: flex;
+  // flex-direction: column;
+  // align-items: center;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+   margin: 0;
+  position: relative;
+  width: 100%;
+  height: 100vh;
 }
 
 .canvas-container {
   position: relative;
-  width: 100%;
-  height: 100vh;
-  background-image: '/asets/background-basketball.png';
-}
-
-.img-buttons {
-  width: 100%;
-  height: 100%;
+  height:100%;
+  width:100%;
+  flex: 1; 
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  
+  flex: 1; /* Allow it to fill available space */
+  line-height:1.6em;
 }
 
 canvas {
   width: 100%;
-  height: 100%;
+  height: 98%;
   border: 1px solid #faf6f6;
   z-index: 1;
 }
 
-.controls {
-  width: 100%;
-  padding: 10px;
-  box-sizing: border-box;
+.points {
+  font-family:'Acme';
+  line-height:1.2em;
+  font-size: 3.5em;
+  font-weight: 900;
+  background-color: rgb(180, 172, 160);
+  border-radius: 5%;
+  padding: 5px;
+  z-index: 10;
+}
+
+.show-scores-button {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  border: none;
+  background: none;
   z-index: 10;
 
-  .charge-button {
-    position: absolute;
-    left: 10px;
-    top: 10px;
-    z-index: 10;
-  }
-
-  .angle-button {
-    position: absolute;
-    right: 120px;
-    bottom: 10px;
-    z-index: 10;
-  }
-
-  .no-border {
-    border: none;
-    background: none;
-    padding: 2%;
-    width: 20%;
-    height: 20%;
-  }
-
-  .flexChange {
-    position: absolute;
-    left: 200px;
-    top: -50px;
-    border-style: none;
-    width: 20%;
-    height: 20%;
-  }
-
-  .img-buttons {
+  .button-image {
     width: 50px;
     height: 50px;
-    opacity: 1;
+  }
+}
+.upper{
+  position: absolute;
+  top:5%;
+}
+
+.controls {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 10;
+
+  button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0 5px;
+
+  .btn-bottom {
+    position:absolute;
+    bottom:500px;
+    width: 50px;
+    height: 50px;
+  }
+  }
+  .angle{
+    font-size:1em;
+    font-family: Acme;
+    font-weight: 900;
   }
 
-  .round-button {
-    width: 20%;
-    height: 20%;
-    border-radius: 50%;
-    border-color: #007bff;
-    background-color: #007bff;
-    color: white;
-    padding: 2%;
-    font-size: 2em;
-    cursor: pointer;
-    padding: 0;
-    width: 30%;
-    height: 30%;
+  .button-image {
+    width: 50px;
+    height: 50px;
+  }
 
-    &:active {
-      background-color: #0056b3;
-    }
+}
+.control-rows{
+  display:flex;
+  flex-direction: row;
+}
+.controls-bottom{
+  display:flex;
+  justify-content: space-around;
+  position:apsolute;
+  bottom:600px;
+  left:500px;
+
+  button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0 5px;
+  }
+
+  .button-image {
+    width: 50px;
+    height: 50px;
+  }
+
+}
+
+@media (max-width: 600px) {
+  .controls {
+    flex-direction: column;
+    bottom: auto;
+    top: 70%;
+  }
+
+  .button-image {
+    width: 40px;
+    height: 40px;
   }
 }
 
 .score-table {
   width: 100%;
+  position:relative;
   display: flex;
   flex-direction: column;
   gap: 10px;
   overflow: auto;
+  padding: 20px;
 
   button {
     padding: 10px 20px;
@@ -108,118 +155,89 @@ canvas {
       background-color: #0056b3;
     }
   }
-}
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  border-radius: 10px;
-}
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 10px;
+  }
 
-th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
-}
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+  }
 
-th {
-  background-color: #f2f2f2;
-  text-align: left;
-}
+  th {
+    background-color: #f2f2f2;
+    text-align: left;
+  }
 
-.currentPlayer {
-  background-color: lightcoral;
-}
+  .currentPlayer {
+    background-color: lightcoral;
+  }
 
-.flashing {
-  animation: flash 1s infinite;
-}
+  .flashing {
+    animation: flash 1s infinite;
+  }
 
-@keyframes flash {
-  0% { background-color: lightcoral; }
-  50% { background-color: lightblue; }
-  100% { background-color: lightcoral; }
+  @keyframes flash {
+    0% { background-color: lightcoral; }
+    50% { background-color: lightblue; }
+    100% { background-color: lightcoral; }
+  }
+  
 }
+.current-shooting{
+    font-size:1em;
+    font-weight: 900;
+    font-family: 'Acme';
 
-.controls button {
-  border: none;
-  background: none;
 }
-
-.controls .img-buttons {
-  width: 50px;
-  height: 50px;
-}
-
-.controls .no-border img {
-  width: 100%;
+.arrow-indicator {
+  width: 50px;   /* Adjust the size of the arrow */
   height: auto;
+  font-size:3em;
+  transform-origin: bottom left; /* Set the rotation origin */
+  transition: transform 0.1s linear; /* Smooth rotation */
+  z-index: 10;
+  padding-top:2%;
+  padding-left:1%;
+  
+}
+.space-before-arrow{
+  color:rgba(255,255,255,0);
 }
 
-.points {
-  position:absolute;
-  top:10px;
-  right:70px;
-  font-size: 2em;
-  font-weight: 900;
-  background-color: rgb(180, 172, 160);
-  border-radius: 5% 5%;
-  padding: 1%;
+/* Adjust for mobile devices */
+@media (max-width: 600px) {
+  .arrow-indicator {
+    bottom: 80px;
+    left: 40px;
+    width: 40px;
+  }
 }
 
-.container-up-buttons {
-  display: flex;
-  flex-direction: column;
-}
-
-.show-scores-button {
+.angle-button {
   position: absolute;
-  top: 10px;
-  left: 200px;
-  width: auto;
-  height: 50px;
-  border: none;
+  bottom: 4%;
+  right: 10%;
   background: none;
-}
-.modal {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-}
-
-.modal-dialog {
-  background: white;
-  border-radius: 8px;
-  max-width: 400px;
-  width: 100%;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.modal-header,
-.modal-footer {
-  padding: 16px;
-  border-bottom: 1px solid #dee2e6;
-}
-
-.modal-header {
-  border-bottom: none;
-}
-
-.modal-title {
+  border: none;
+  padding: 0;
   margin: 0;
-}
+  z-index: 10;
 
-.modal-body {
-  padding: 16px;
+  .button-image {
+    width: 50px;
+    height: 50px;
+  }
 }
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
+.bdg-brown{
+  background: linear-gradient(to right, rgb(255, 0, 191), red, orange);
+  text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #fff;
+  border-radius: 8px;
+  padding:3%;
+  letter-spacing: 0.1ch;
+  font-family:'Acme';
+  color:rgb(33, 12, 36);
 }

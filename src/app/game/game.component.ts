@@ -1,12 +1,11 @@
-import { Component, ElementRef, OnInit, ViewChild, HostListener, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, ElementRef, OnInit, OnDestroy, ViewChild, HostListener, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
-
-interface Player {
-  name: string;
-  shots: number;
-  points: number;
-}
+import { SQLiteService } from '../services/sqlite.service';
+import { CapacitorSQLite, SQLiteDBConnection, SQLiteConnection } from '@capacitor-community/sqlite';
+import { Player} from './../models/player';
+import { GameStateService } from '../services/game-state.service';
+import { VolumeService } from '../services/volume.service';
 
 interface Team {
   name: string;
@@ -31,7 +30,7 @@ export class GameComponent implements OnInit {
   private gravity = 0.5;
   private chargePower = 0;
   private charging = false;
-  private angle = 45;
+  public angle = 45;
   private angleCharging = false;
   private shotCount = 0;
   public currentPlayerIndex = 0;
@@ -74,30 +73,64 @@ export class GameComponent implements OnInit {
   private playWithComputer = false;
   private debounceShot = false;
   difficulty: 'easy' | 'medium' | 'hard' = 'hard';
-
+  private coefficientOfRestitution = 0.6; 
   public showModal = false;
   public modalMessage = '';
+  private xPositionUnchangedStartTime: number | null = null; 
+  private infoIconImage: HTMLImageElement | null = null;
+  private infoIconBounds: { x: number; y: number; width: number; height: number } | null = null;
+  public showTooltips: boolean = false;
+  private shotTimer: any = null;
+  private shotDuration = 5000; // 5 seconds in milliseconds
+  private ballHasBeenInMotion = false;
 
-  team1Players: Player[] = [ 
-    { name: 'Player 1-1', shots: 0, points: 0 },
-    { name: 'Player 1-2', shots: 0, points: 0 },
-    { name: 'Player 1-3', shots: 0, points: 0 },
-    { name: 'Player 1-4', shots: 0, points: 0 },
-    { name: 'Player 1-5', shots: 0, points: 0 },
-  ];
-  team2Players: Player[] = [
-    { name: 'Player 2-1', shots: 0, points: 0 },
-    { name: 'Player 2-2', shots: 0, points: 0 },
-    { name: 'Player 2-3', shots: 0, points: 0 },
-    { name: 'Player 2-4', shots: 0, points: 0 },
-    { name: 'Player 2-5', shots: 0, points: 0 },
-  ];
-  team1Name: string = 'Team 1';
-  team2Name: string = 'Team 2';
-  team1Points = 0;
-  team2Points = 0;
+  public currentPlayerToDisplay = '';
+  public currentTeamToDisplay = '';
+  public currentShotToDisplay: number | null = null;
+  
+  // team1Players: Player[] = [ 
+  //   { name: 'Player 1-1', shots: 0, points: 0 },
+  //   { name: 'Player 1-2', shots: 0, points: 0 },
+  //   { name: 'Player 1-3', shots: 0, points: 0 },
+  //   { name: 'Player 1-4', shots: 0, points: 0 },
+  //   { name: 'Player 1-5', shots: 0, points: 0 },
+  // ];
+  // team2Players: Player[] = [
+  //   { name: 'Player 2-1', shots: 0, points: 0 },
+  //   { name: 'Player 2-2', shots: 0, points: 0 },
+  //   { name: 'Player 2-3', shots: 0, points: 0 },
+  //   { name: 'Player 2-4', shots: 0, points: 0 },
+  //   { name: 'Player 2-5', shots: 0, points: 0 },
+  // ];
+ // Getter and Setter for team1
+ get team1(): Team { return this.gameStateService.team1; }
+ set team1(value: Team) { this.gameStateService.team1 = value; }
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object, private router: Router) {
+ // Getter and Setter for team2
+ get team2(): Team { return this.gameStateService.team2; }
+ set team2(value: Team) { this.gameStateService.team2 = value; }
+
+ // Getter and Setter for team1Points
+ get team1Points(): number { return this.gameStateService.team1Points; }
+ set team1Points(value: number) { this.gameStateService.team1Points = value; }
+
+ // Getter and Setter for team2Points
+ get team2Points(): number { return this.gameStateService.team2Points; }
+ set team2Points(value: number) { this.gameStateService.team2Points = value; }
+
+ // Getter and Setter for team1Players
+ get team1Players(): Player[] { return this.gameStateService.team1.players; }
+ set team1Players(value: Player[]) { this.gameStateService.team1.players = value; }
+
+  // Getter and Setter for team2Players
+  get team2Players(): Player[] { return this.gameStateService.team2.players; }
+  set team2Players(value: Player[]) { this.gameStateService.team2.players = value; }
+  // team1Name: string = 'Team 1';
+  // team2Name: string = 'Team 2';
+  // team1Points = 0;
+  // team2Points = 0;
+  constructor(@Inject(PLATFORM_ID) private platformId: Object, private router: Router, private sqliteService: SQLiteService,
+   private gameStateService: GameStateService, private volumeService: VolumeService ) {
     const navigation = this.router.getCurrentNavigation();
     if (navigation && navigation.extras.state) {
       this.playWithComputer = navigation.extras.state['playWithComputer'] || false;
@@ -105,12 +138,13 @@ export class GameComponent implements OnInit {
     }
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.ctx = this.gameCanvas.nativeElement.getContext('2d');
       if (this.ctx) {
         this.resizeCanvas();
-        this.loadTeams(); // Load teams after context is set
+        await this.sqliteService.initializeDatabase(); // Initialize DB
+        await this.loadTeams(); // Load teams after context is set
         this.initializeImagesAndSounds();
         this.initializeEventListeners();
         this.lastTimestamp = performance.now();
@@ -119,30 +153,63 @@ export class GameComponent implements OnInit {
         console.error('Failed to get canvas context');
       }
     }
+    
   }
 
-  loadTeams() {
-    const savedTeam1 = localStorage.getItem('team1');
-    const savedTeam2 = localStorage.getItem('team2');
-    if (savedTeam1) {
-      const parsedTeam1 = JSON.parse(savedTeam1);
-      this.team1Name = parsedTeam1.name;
-      this.team1Players = parsedTeam1.players.map((player: Player) => ({
-        ...player,
-        shots: player.shots ?? 0,
-        points: player.points ?? 0
-      }));
-    }
-    if (savedTeam2) {
-      const parsedTeam2 = JSON.parse(savedTeam2);
-      this.team2Name = parsedTeam2.name;
-      this.team2Players = parsedTeam2.players.map((player: Player) => ({
-        ...player,
-        shots: player.shots ?? 0,
-        points: player.points ?? 0
-      }));
+  ngOnDestroy() {
+    if (this.shotTimer) {
+      clearTimeout(this.shotTimer);
+      this.shotTimer = null;
     }
   }
+
+  async loadTeams() {
+    try {
+      const savedTeams = await this.sqliteService.loadTeams();
+      if (savedTeams) {
+        this.gameStateService.team1.name = savedTeams.team1.name;
+        this.gameStateService.team1.players = savedTeams.team1.players.map((player: { name: string }) => ({
+          name: player.name,
+          shots: 0,
+          points: 0
+        }));
+        this.gameStateService.team2.name = savedTeams.team2.name;
+        this.gameStateService.team2.players = savedTeams.team2.players.map((player: { name: string }) => ({
+          name: player.name,
+          shots: 0,
+          points: 0
+        }));
+      } else {
+        console.error('No saved teams found');
+      }
+    } catch (error) {
+      console.error('Failed to load teams:', error);
+    }
+  }
+  
+  
+
+    // const savedTeam1 = localStorage.getItem('team1');
+    // const savedTeam2 = localStorage.getItem('team2');
+    // if (savedTeam1) {
+    //   const parsedTeam1 = JSON.parse(savedTeam1);
+    //   this.team1Name = parsedTeam1.name;
+    //   this.team1Players = parsedTeam1.players.map((player: Player) => ({
+    //     ...player,
+    //     shots: player.shots ?? 0,
+    //     points: player.points ?? 0
+    //   }));
+    // }
+    // if (savedTeam2) {
+    //   const parsedTeam2 = JSON.parse(savedTeam2);
+    //   this.team2Name = parsedTeam2.name;
+    //   this.team2Players = parsedTeam2.players.map((player: Player) => ({
+    //     ...player,
+    //     shots: player.shots ?? 0,
+    //     points: player.points ?? 0
+    //   }));
+    // }
+  //}
 
   initializeImagesAndSounds() {
     this.ballImage = new Image();
@@ -175,6 +242,9 @@ export class GameComponent implements OnInit {
     this.backgroundImage = new Image();
     this.backgroundImage.src = 'assets/background-basketball.png';
 
+    this.infoIconImage = new Image();
+    this.infoIconImage.src = 'assets/infoButton.png';
+
     const images = [
       this.ballImage,
       this.mockBasketUpImage,
@@ -185,6 +255,7 @@ export class GameComponent implements OnInit {
       this.playerImages['player_2'],
       this.playerImages['player_3'],
       this.playerImages['player_4'],
+      this.infoIconImage,
       this.backgroundImage
     ];
 
@@ -227,12 +298,33 @@ export class GameComponent implements OnInit {
     if (!this.userInteracted) {
       this.userInteracted = true;
       console.log('audio initializing');
-      this.swooshSound = new Audio('assets/swooh.mp3');
-      this.bounceSound = new Audio('assets/bounce.mp3');
-      this.rimSound = new Audio('assets/rim.mp3');
-      this.scoreSound = new Audio('assets/score.mp3');
+      this.swooshSound = new Audio('assets/swooh.ogg');
+      this.bounceSound = new Audio('assets/bounce.ogg');
+      this.rimSound = new Audio('assets/rim.ogg');
+      this.scoreSound = new Audio('assets/score.ogg');
     }
+    // Set initial volume based on the service
+    const initialVolume = this.volumeService.getVolume();
+    this.setAudioVolume(initialVolume);
+
+    // Subscribe to volume changes
+    this.volumeService.volume$.subscribe((volume) => {
+      this.setAudioVolume(volume);
+    });
+    // Subscribe to volume changes
+    this.volumeService.volume$.subscribe((volume) => {
+      this.setAudioVolume(volume);
+    });
   }
+
+
+setAudioVolume(volume: number) {
+  if (this.swooshSound) this.swooshSound.volume = volume;
+  if (this.bounceSound) this.bounceSound.volume = volume;
+  if (this.rimSound) this.rimSound.volume = volume;
+  if (this.scoreSound) this.scoreSound.volume = volume;
+}
+  
 
   @HostListener('window:keydown', ['$event'])
   keyDown(event: KeyboardEvent) {
@@ -242,6 +334,10 @@ export class GameComponent implements OnInit {
     }
 
     if (event.code === 'Space') {
+      if (this.shotInProgress) {
+        console.log('Cannot shoot again during the same turn.');
+        return;
+      }
       this.charging = true;
       this.playerState = 'player_2';
     }
@@ -257,16 +353,22 @@ export class GameComponent implements OnInit {
   @HostListener('window:keyup', ['$event'])
   keyUp(event: KeyboardEvent) {
     if (event.code === 'Space') {
+      if (this.shotInProgress) {
+        console.log('Cannot shoot again during the same turn.');
+        return;
+      }  
       this.charging = false;
       this.shoot();
       if (this.swooshSound) {
         this.playSound(this.swooshSound);
+        console.log('swoosh sound should be played');
       }
+      else console.log('Error! No swoosh sound loaded!');
       this.playerState = 'player_3';
       setTimeout(() => {
         this.playerState = 'player_4';
         if (this.playWithComputer && this.currentTeam === 2) {
-          setTimeout(() => this.computerShoots(), 1000); // Add delay before computer shoots
+          setTimeout(() => this.computerShoots(), 1000); // delay before computer shoots
         }
       }, 1000);
     }
@@ -278,20 +380,99 @@ export class GameComponent implements OnInit {
     }
   }
 
+  @HostListener('click', ['$event'])
+onCanvasClick(event: MouseEvent) {
+  const canvasRect = this.gameCanvas.nativeElement.getBoundingClientRect();
+  const scaleX = this.gameCanvas.nativeElement.width / canvasRect.width;
+  const scaleY = this.gameCanvas.nativeElement.height / canvasRect.height;
+  const clickX = (event.clientX - canvasRect.left) * scaleX;
+  const clickY = (event.clientY - canvasRect.top) * scaleY;
+
+  //console.log('Click coordinates:', clickX, clickY);
+  //console.log('Info icon bounds:', this.infoIconBounds);
+  //Info button service here
+  // if (this.infoIconBounds) {
+  //   const { x, y, width, height } = this.infoIconBounds;
+  //   if (
+  //     clickX >= x &&
+  //     clickX <= x + width &&
+  //     clickY >= y &&
+  //     clickY <= y + height
+  //   ) {
+  //     this.toggleTooltips();
+  //   }
+  // }
+}
+
+  public toggleTooltips() {
+    this.showTooltips = !this.showTooltips;
+  }
+  
+  get arrowRotation(): string {
+    const rotationAngle = this.angle+180; // Adjust so 45 degrees corresponds to 0 rotation
+    return `rotate(${rotationAngle}deg)`;
+  }
+  
+
   playSound(sound: HTMLAudioElement) {
     sound.currentTime = 0;
     sound.play().catch((error) => {
       console.error('Error playing sound:', error);
     });
   }
+  
+  private startShotTimer() {
+    if (this.shotTimer) {
+      clearTimeout(this.shotTimer);
+    }
 
+    this.shotTimer = setTimeout(() => {
+      if (this.shotInProgress) {
+        console.log('Shot timed out after 5 seconds.');
+        this.endShotDueToTimeout();
+      }
+    }, this.shotDuration);
+  }
+  private endShotDueToTimeout() {
+    // Stop the ball's movement
+    this.ball.velX = 0;
+    this.ball.velY = 0;
+
+    // Reset flags
+    this.shotInProgress = false;
+    this.resetPending = false;
+
+    // Proceed to the next turn
+    this.nextTurn();
+
+    // Optionally, provide feedback to the player
+    this.displayTimeoutMessage();
+  }
+
+  private displayTimeoutMessage() {
+    this.displayScoreText = true;
+    this.pointsScored = this.pointsScored; // No points scored due to timeout
+
+    setTimeout(() => {
+      this.displayScoreText = false;
+    }, 1500);
+  }
+  
   shoot() {
+    this.pointsScored = 0;
+    this.startShotTimer();
+
+    if (this.shotInProgress) {
+      console.log('Cannot shoot again during the same turn.');
+      return;
+    }
     this.ball.velX = this.chargePower * Math.cos(this.angle * Math.PI / 180);
     this.ball.velY = -this.chargePower * Math.sin(this.angle * Math.PI / 180);
     this.ballScored = false;
     this.chargePower = 0;
     this.ballExitedTop = false;
     this.shotInProgress = true; // Mark the shot as beeing in progress
+    this.xPositionUnchangedStartTime = null;
   }
 
   checkBasket() {
@@ -304,7 +485,7 @@ export class GameComponent implements OnInit {
       this.ball.y + this.ball.radius > basketTop &&
       this.ball.y - this.ball.radius < basketBottom &&
       this.ball.x - this.ball.radius > basketLeft + 2 &&
-      this.ball.x + this.ball.radius < basketRight - 2
+      this.ball.x + this.ball.radius < basketRight -10//- 2
     );
 
     const ballAboveBasketUp = (
@@ -343,11 +524,14 @@ export class GameComponent implements OnInit {
         setTimeout(() => {
           this.ball.velY = this.gravity;
           this.shotInProgress = false; // Reset the shot in progress flag
-          this.nextTurn();
-
+          console.log('shotCount before nextTurn = ', this.shotCount);
+          console.log('Shot ended after scoring');
+          if(this.shotCount > 20)this.nextTurn();
+          else return;
         }, 3000); // Ensure 3 seconds delay before resetting
       }
     }
+    this.ballHasBeenInMotion = false;
   }
 
   startShaking() {
@@ -365,36 +549,67 @@ export class GameComponent implements OnInit {
       this.flashing = false;
     }, 3000);
   }
-
   checkCollisionWithRim() {
     const basketLeft = this.basket.x - this.basket.width / 2;
     const basketRight = this.basket.x + this.basket.width / 2;
-    const rimEdgeMargin = 20;
-
-    if (
-      this.ball.x + this.ball.radius >= basketLeft - rimEdgeMargin &&
-      this.ball.x + this.ball.radius <= basketLeft + rimEdgeMargin &&
-      Math.abs(this.ball.y - this.basket.y + 16) < this.basket.height / 2
-    ) {
-      this.ball.velX = -this.ball.velX;
-      this.ball.x = basketLeft - this.ball.radius;
+    const rimRadius = 10; // Approximate radius of the rim edges
+  
+    // Left rim collision
+    const dxLeft = this.ball.x - basketLeft;
+    const dyLeft = this.ball.y - this.basket.y;
+    const distanceLeft = Math.sqrt(dxLeft * dxLeft + dyLeft * dyLeft);
+  
+    if (distanceLeft < this.ball.radius + rimRadius) {
+      // Calculate normal vector
+      const nx = dxLeft / distanceLeft;
+      const ny = dyLeft / distanceLeft;
+  
+      // Calculate velocity component along the normal
+      const vn = this.ball.velX * nx + this.ball.velY * ny;
+  
+      // Reflect the velocity along the normal with energy loss
+      this.ball.velX -= (1 + this.coefficientOfRestitution) * vn * nx;
+      this.ball.velY -= (1 + this.coefficientOfRestitution) * vn * ny;
+  
+      // Adjust position to prevent sticking
+      const overlap = this.ball.radius + rimRadius - distanceLeft;
+      this.ball.x += nx * overlap;
+      this.ball.y += ny * overlap;
+  
       if (this.rimSound) {
         this.playSound(this.rimSound);
       }
     }
-
-    if (
-      this.ball.x - this.ball.radius <= basketRight + rimEdgeMargin &&
-      this.ball.x - this.ball.radius >= basketRight - rimEdgeMargin &&
-      Math.abs(this.ball.y - this.basket.y + 16) < this.basket.height / 2
-    ) {
-      this.ball.velX = -this.ball.velX;
-      this.ball.x = basketRight + this.ball.radius;
+  
+    // Right rim collision
+    const dxRight = this.ball.x - basketRight;
+    const dyRight = this.ball.y - this.basket.y;
+    const distanceRight = Math.sqrt(dxRight * dxRight + dyRight * dyRight);
+  
+    if (distanceRight < this.ball.radius + rimRadius) {
+      // Calculate normal vector
+      const nx = dxRight / distanceRight;
+      const ny = dyRight / distanceRight;
+  
+      // Calculate velocity component along the normal
+      const vn = this.ball.velX * nx + this.ball.velY * ny;
+  
+      // Reflect the velocity along the normal with energy loss
+      this.ball.velX -= (1 + this.coefficientOfRestitution) * vn * nx;
+      this.ball.velY -= (1 + this.coefficientOfRestitution) * vn * ny;
+  
+      // Adjust position to prevent sticking
+      const overlap = this.ball.radius + rimRadius - distanceRight;
+      this.ball.x += nx * overlap;
+      this.ball.y += ny * overlap;
+  
       if (this.rimSound) {
         this.playSound(this.rimSound);
       }
     }
   }
+  
+  
 
   checkCollisionWithTarget() {
     if (!this.targetImage) return;
@@ -418,6 +633,12 @@ export class GameComponent implements OnInit {
   }
 
   nextTurn() {
+
+     // Clear the shot timer
+     if (this.shotTimer) {
+      clearTimeout(this.shotTimer);
+      this.shotTimer = null;
+    }
     if (this.ball.x != this.initialBallPosition.x) {
       this.shotCount += 1;
       console.log('shotCount in nextTurn : ' + this.shotCount)
@@ -426,6 +647,8 @@ export class GameComponent implements OnInit {
         console.log('RESETING');
         console.log('nextTurn players points checking at the end ', this.team1Players);
         console.log('nextTurn players points checking at the end ', this.team2Players);
+        this.team2Players[this.currentPlayerIndex].shots =+2; 
+        console.log('this.team2Players[this.currentPlayerIndex].shots =+1; ',this.team2Players[this.currentPlayerIndex].shots );
         this.endGame();
         return;
       }
@@ -452,8 +675,17 @@ export class GameComponent implements OnInit {
   }
 
   addPoints(points: number) {
-    const currentPlayer = this.currentTeam === 1 ? this.team1Players[this.currentPlayerIndex] : this.team2Players[this.currentPlayerIndex];
-    currentPlayer.points += points;
+    const currentPlayer = this.currentTeam === 1 ? this.team1Players[this.currentPlayerIndex] : this.team2Players[this.currentPlayerIndex]; 
+    console.log('This after points scored : current player:', currentPlayer.name,' currentPlayer.points',currentPlayer.points,' points scored now:',
+      points, ' team:', this.currentTeam,
+       ' player:',this.team1Players[this.currentPlayerIndex]);
+    if(currentPlayer?.points != null) {
+         currentPlayer.points += points;
+         console.log('Points of currentPlayer.points:', currentPlayer.points);
+    }
+
+    else console.error('currentPlayer is undefined');
+
 
     if (this.currentTeam === 1) {
       this.team1Points += points;
@@ -484,7 +716,8 @@ export class GameComponent implements OnInit {
     console.log('improved current turns Players in resetBallForNextShot is ', team1PlayersCopy[this.currentPlayerIndex], team2PlayersCopy[this.currentPlayerIndex]);
     console.log('----');
     if (this.ball.x != this.initialBallPosition.x) {
-      currentPlayer.shots += 1;
+      if(currentPlayer?.shots != null) currentPlayer.shots += 1;
+      else console.log('no current player - error!');
     }
     this.ball.x = this.initialBallPosition.x;
     this.ball.y = this.initialBallPosition.y;
@@ -507,29 +740,41 @@ export class GameComponent implements OnInit {
       this.resetGame();
     }
   }
+    // Access properties directly
+    get team1Name() { return this.gameStateService.team1.name; }
+    get team2Name() { return this.gameStateService.team2.name; }
 
   endGame() {
-    // Capture the final state before resetting the game
-    const finalState = {
-      team1: { name: this.team1Name, players: JSON.parse(JSON.stringify(this.team1Players)) },
-      team2: { name: this.team2Name, players: JSON.parse(JSON.stringify(this.team2Players)) },
-      team1Points: this.team1Points,
-      team2Points: this.team2Points
+    this.gameStateService.team1 = {
+      name: this.team1Name,
+      players: JSON.parse(JSON.stringify(this.team1Players)),
     };
+    this.gameStateService.team2 = {
+      name: this.team2Name,
+      players: JSON.parse(JSON.stringify(this.team2Players)),
+    };
+    this.gameStateService.team1Points = this.team1Points;
+    this.gameStateService.team2Points = this.team2Points;
+    this.resetNotFull();
+    this.router.navigate(['/summary']);
+    return;
+    //this.resetGame();
+  }
+
+  resetNotFull(){
+    this.stopAllSounds();
+    this.shotCount = 0;
+    this.currentPlayerIndex = 0;
   
-    console.log('Final state before ending game:', finalState);
-  
-    // Log the state being passed to help with debugging
-    console.log('Navigating to summary with state:', finalState);
-  
-    // Navigate to the summary component with the game result as state
-    this.router.navigate(['/summary'], { state: finalState });
-  
-    // Reset the game after navigation
-    this.resetGame();
   }
   
   resetGame() {
+    console.log('Resetting game data');
+    //this.gameStateService.resetGameData();
+    
+    // ... reset other game-specific variables if needed ...
+  //}
+  // resetGame() {
     console.log('Reseting game method');
     this.stopAllSounds();
     this.team1Points = 0;
@@ -543,32 +788,50 @@ export class GameComponent implements OnInit {
     this.resetAngle();
   }
 
+  public parseToInt(num:number): number{
+    return Math.round(num);
+   }
+
+   get arrowColor(): string {
+    // Interpolate between blue and cyan based on charge power
+    const blue = { r: 0, g: 0, b: 255 }; // Blue color RGB
+    const cyan = { r: 0, g: 255, b: 255 }; // Cyan color RGB
+
+    const ratio = this.angle / 90;
+    const r = Math.round(blue.r + (cyan.r - blue.r) * ratio);
+    const g = Math.round(blue.g + (cyan.g - blue.g) * ratio);
+    const b = Math.round(blue.b + (cyan.b - blue.b) * ratio);
+
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+
   draw(timestamp: number) {
+    const velXThreshold = 0.01; // Adjusted threshold
     if (!this.ctx || !this.ballImage || !this.basketUpImage || !this.basketDownImage || !this.targetImage || !this.playerImages[this.playerState]
       || !this.mockBasketUpImage || !this.mockBasketDownImage || !this.backgroundImage) return;
-
+  
     const elapsed = (timestamp - this.lastTimestamp) * this.gameSpeed;
     this.lastTimestamp = timestamp;
-
+  
     requestAnimationFrame(this.draw.bind(this));
-
+  
     const canvasWidth = this.gameCanvas.nativeElement.width;
     const canvasHeight = this.gameCanvas.nativeElement.height;
-
+  
     if (this.charging) {
       this.chargePower += 0.5 * elapsed * 60;
       if (this.chargePower > this.maxChargePower) {
-        this.chargePower = 0;
+        this.chargePower = this.maxChargePower; // Cap at maxChargePower
       }
     }
-
+  
     if (this.angleCharging) {
       this.angle += 1 * elapsed * 60;
       if (this.angle > 90) {
         this.angle = 90;
       }
     }
-
+  
     if (this.charging && this.ball.x === this.initialBallPosition.x) {
       const playerImage = this.playerImages[this.playerState];
       if (playerImage) {
@@ -580,6 +843,30 @@ export class GameComponent implements OnInit {
       this.ball.x += this.ball.velX * elapsed * 60;
       this.ball.y += this.ball.velY * elapsed * 60;
       this.ball.velY += this.gravity * elapsed * 60;
+    }
+  
+    // Check if the ball's horizontal velocity is near zero
+    if (this.shotInProgress) {
+      const currentTime = performance.now();
+      // Start checking only after the ball has been in motion for a short time
+      if (this.ballHasBeenInMotion) {
+        if (Math.abs(this.ball.velX) < velXThreshold) {
+          if (!this.xPositionUnchangedStartTime) {
+            this.xPositionUnchangedStartTime = currentTime;
+          } else if (currentTime - this.xPositionUnchangedStartTime >= 3000) {
+            console.log('Ball has not moved horizontally for 3 seconds, ending shot');
+            this.shotInProgress = false;
+            this.nextTurn();
+            return; // Exit the draw function to prevent further processing
+          }
+        } else {
+          // Ball's horizontal velocity has changed
+          this.xPositionUnchangedStartTime = null;
+        }
+      } else if (Math.abs(this.ball.velX) > velXThreshold) {
+        // Ball has started moving
+        this.ballHasBeenInMotion = true;
+      }
     }
 
     if (this.ball.y + this.ball.radius < 0) {
@@ -594,7 +881,9 @@ export class GameComponent implements OnInit {
       }
       if (this.ballScored && !this.resetPending) {
         this.resetPending = true;
-        setTimeout(() => this.nextTurn(), 1500);
+        console.log('reset Pending - here before nextTurn');
+        console.log('ball position x=',this.ball.x, '  y=',this.ball.y);
+        setTimeout(() => this.nextTurn(), 15);
       }
     }
 
@@ -605,8 +894,8 @@ export class GameComponent implements OnInit {
         this.playSound(this.bounceSound);
       }
     }
-
     if (this.ball.x - this.ball.radius > canvasWidth) {
+      console.log('Ball exited right side of canvas');
       this.nextTurn();
     }
 
@@ -666,7 +955,7 @@ export class GameComponent implements OnInit {
     this.ctx.globalAlpha = 1;
 
     this.ctx.globalAlpha = 0;
-    this.ctx.fillStyle = "blue";
+    //this.ctx.fillStyle = "blue";
     this.ctx.rect(1000, 320, 110, 10);
     this.ctx.fill();
     //drawing charge power indicator
@@ -677,24 +966,51 @@ export class GameComponent implements OnInit {
     this.ctx.fillStyle = 'green';
     this.ctx.fillRect(1200, canvasHeight - this.chargePower * 20 - 50, 20, this.chargePower * 20);
     this.ctx.save();
-
+    const canvas5procent = canvasWidth*0.02;
+    this.ctx.font = `bold ${canvas5procent}px Acme`;
+    
+    //this.ctx.fillStyle = 'blue';
+    //this.ctx.textAlign = 'center';
+    //this.ctx.fillText(`Angle: ${Math.round(this.angle)}°`, canvasWidth - 300, 90);
     // Drawing the angle arrow at the right top edge of the canvas
-    this.ctx.save();
-    this.ctx.translate(canvasWidth - 300, 60);
-    this.ctx.rotate(-this.angle * Math.PI / 180);
-    this.ctx.fillStyle = 'black';
-    this.ctx.fillRect(0, -5, 50, 5);
-    this.ctx.beginPath();
-    this.ctx.moveTo(47, -10);
-    this.ctx.lineTo(57, -2);
-    this.ctx.lineTo(47, 5);
-    this.ctx.closePath();
-    this.ctx.fill();
+    // this.ctx.save();
+    // this.ctx.translate(canvasWidth - 300, 60);
+    // this.ctx.rotate(-this.angle * Math.PI / 180);
+    // this.ctx.fillStyle = 'black';
+    // this.ctx.fillRect(0, -5, 50, 5);
+    // this.ctx.beginPath();
+    // this.ctx.moveTo(47, -10);
+    // this.ctx.lineTo(57, -2);
+    // this.ctx.lineTo(47, 5);
+    // this.ctx.closePath();
+    // this.ctx.fill();
     this.ctx.restore();
+
+    
+    
+    //Draw the Info icon
+    if (this.infoIconImage) {
+      const infoIconWidth = 30; // Adjust as needed
+      const infoIconHeight = 30; // Adjust as needed
+      const infoIconX = canvasWidth - 450; // Position to the left of the angle arrow
+      const infoIconY = 10; // Position at the top of the screen
+    
+      //this.ctx.drawImage(this.infoIconImage, infoIconX, infoIconY, infoIconWidth, infoIconHeight);
+    
+      // Store the info icon's position and size for click detection
+      this.infoIconBounds = { x: infoIconX, y: infoIconY, width: infoIconWidth, height: infoIconHeight };
+    }
+
+    
+    //Draw the tooltip's condition
+    if (this.showTooltips) {
+      this.drawTooltips();
+    }
 
     if (this.displayScoreText) {
       this.ctx.fillStyle = 'red';
-      this.ctx.font = 'bold 29pt Helvetica';
+      const canvas5procent = canvasWidth*0.03;
+      this.ctx.font = `bold ${canvas5procent}px Acme`;
       this.ctx.textAlign = 'center';
       this.ctx.fillText(`SCORE ${this.pointsScored} POINTS!`, canvasWidth / 2, canvasHeight / 2);
     }
@@ -702,23 +1018,87 @@ export class GameComponent implements OnInit {
     // Display current team, player, and round
     const currentPlayer = this.currentTeam === 1 ? this.team1Players[this.currentPlayerIndex] : this.team2Players[this.currentPlayerIndex];
     this.ctx.fillStyle = 'black';
-    this.ctx.font = '16px Arial';
-    const shotInfoX = 170;
+    this.ctx.font = `bold ${canvas5procent}px Acme`;
+    const shotInfoX = 370;
     const shotInfoY = 80;
 
     // Ensure currentPlayer is defined before accessing its properties
     if (currentPlayer) {
-      this.ctx.fillText(`Team: ${this.currentTeam}`, shotInfoX, shotInfoY - 60);
-      this.ctx.fillText(`Player: ${currentPlayer.name || 'Unknown'}`, shotInfoX, shotInfoY - 40);
-      this.ctx.fillText(`Shots: ${currentPlayer.shots}`, shotInfoX, shotInfoY - 20);
+      if(this.currentTeam === 1) {this.currentTeamToDisplay = this.gameStateService.team1.name} 
+      else {
+         if(this.currentTeam == 2) {this.currentTeamToDisplay = this.gameStateService.team2.name}
+         else {console.log('error - no current name');this.currentTeamToDisplay='no name'}
+      }
+      
+      this.currentPlayerToDisplay = currentPlayer.name;
+      this.currentShotToDisplay = currentPlayer.shots!;
+      //this.ctx.fillText(`Team: ${this.currentTeam}`, shotInfoX, shotInfoY - 60);
+      //this.ctx.fillText(`Player: ${currentPlayer.name || 'Unknown'}`, shotInfoX, shotInfoY - 40);
+      //this.ctx.fillText(`Shots: ${currentPlayer.shots}`, shotInfoX, shotInfoY - 20);
     }
-
+    
     this.checkCollisionWithTarget();
   }
+
+  private drawRoundedRect(x: number, y: number, width: number, height: number, radius: number) {
+    if(this.ctx){
+      this.ctx.beginPath();
+      this.ctx.moveTo(x + radius, y);
+      this.ctx.lineTo(x + width - radius, y);
+      this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      this.ctx.lineTo(x + width, y + height - radius);
+      this.ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      this.ctx.lineTo(x + radius, y + height);
+      this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      this.ctx.lineTo(x, y + radius);
+      this.ctx.quadraticCurveTo(x, y, x + radius, y);
+      this.ctx.closePath();
+    }
+  }
+  
+  
+
+  // Add helper method to draw individual tooltips
+  private drawTooltip(x: number, y: number, text: string) {
+    const padding = 10;
+    const radius = 10; // Radius for rounded corners
+    if(this.ctx){
+      const metrics = this.ctx.measureText(text);
+      const textWidth = metrics.width;
+      const textHeight = 16; // Approximate text height
+      
+      const rectX = x - padding;
+      const rectY = y - textHeight - padding;
+      const rectWidth = textWidth + 2 * padding;
+      const rectHeight = textHeight + 2 * padding;
+      // Draw background rectangle
+      //this.ctx.fillStyle = 'rgba(247, 158, 24, 1)';
+      //this.ctx.fillRect(x - padding, y - textHeight - padding, textWidth + 2 * padding, textHeight + 2 * padding);
+
+      // Draw text
+      //this.ctx.fillStyle = 'white';
+      //this.ctx.fillText(text, x, y);
+      // Draw background rectangle with rounded corners
+      this.ctx.fillStyle = 'orange'; // Set background color to orange
+      this.drawRoundedRect(rectX, rectY, rectWidth, rectHeight, radius);
+      this.ctx.fill();
+      // Draw text
+      this.ctx.fillStyle = 'white';
+      this.ctx.textBaseline = 'top';
+      this.ctx.fillText(text, x, rectY + padding);
+    
+  }
+  
+}
 
   startCharge(event?: TouchEvent) {
     if (event) {
       event.preventDefault();
+    }
+     // Prevent starting a new shot if one is already in progress
+    if (this.shotInProgress) {
+      console.log('Cannot shoot again during the same turn.');
+      return;
     }
     if (this.debounceShot) return; // Prevent multiple rapid presses
     this.debounceShot = true;
@@ -732,6 +1112,10 @@ export class GameComponent implements OnInit {
     if (event) {
       event.preventDefault();
     }
+    if (this.shotInProgress) {
+      console.log('Cannot shoot again during the same turn.');
+      return;
+    }  
     this.charging = false;
     this.shoot();
     if (this.swooshSound) {
@@ -740,8 +1124,8 @@ export class GameComponent implements OnInit {
       } catch (e) {
         console.error('Audio initialization failed:', e);
       }
-      //this.playSound(this.swooshSound);
-      //this.swooshSound.onerror = () => console.error('Failed to load swoosh sound.');
+      this.playSound(this.swooshSound);
+      this.swooshSound.onerror = () => console.error('Failed to load swoosh sound.');
     }
     this.playerState = 'player_3';
     setTimeout(() => {
@@ -837,4 +1221,31 @@ export class GameComponent implements OnInit {
       }, 1000);
     }, 1000); // Add delay to simulate computer's shot preparation
   }
+
+  private drawTooltips() {
+    const canvasWidth = this.gameCanvas.nativeElement.width;
+    const canvasHeight = this.gameCanvas.nativeElement.height;
+
+    if (this.ctx){
+        this.ctx.save();
+        const canvas5procent = canvasWidth*0.02;
+        this.ctx.font = `bold ${canvas5procent}px Acme`;
+        this.ctx.fillStyle = "red";
+        //this.ctx.strokeStyle = 'cyan';
+        this.ctx.lineWidth = 1;
+        this.ctx.textAlign = 'left';
+        const infoTooltip= String('\u21D0')   + ' Tap to remove tooltips';
+        const scoreTooltip = String('\u21D0') + ' Score table';
+        const angleTooltip = 'Tap to adjust angle ' +  String('\u21D2');
+        const powerTooltip = String('\u21D1') + ' Hold and release to adjust power';
+        // Adjust these positions and texts based on your buttons
+        // this.drawTooltip(20, canvasHeight - 635,  powerTooltip);
+        // this.drawTooltip(940, canvasHeight - 10,  angleTooltip);
+        // this.drawTooltip(145, canvasHeight - 690, scoreTooltip);
+        // this.drawTooltip(870, canvasHeight - 690, infoTooltip);
+        this.ctx.restore();
+      } 
+  }
+
+  
 }

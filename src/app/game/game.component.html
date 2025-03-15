@@ -1,36 +1,77 @@
-<div class="game-container">
+<div class="game-container" #gameContainer>
   <div class="canvas-container">
     <canvas #gameCanvas></canvas>
-    <button class="show-scores-button" (click)="scrollToScores()" (touchend)="scrollToScores($event)">
-      <div class="img-buttons">
-        <img class="img-buttons" src="../../assets/scoreButton.png" />
+ 
+    <!-- Controls -->
+  <div class="control-rows">
+        <div class="controls-bottom">
+          <button class="angle-button"
+                  (mousedown)="startAngleCharge()" (mouseup)="stopAngleCharge()" 
+                  (touchstart)="startAngleCharge($event)" (touchend)="stopAngleCharge($event)">
+            <img src="../../assets/angleButton.png" class="button-image" alt="Angle">
+            <h2><span *ngIf="this.showTooltips" class ="badge bdg-brown">Hold to increase angle</span></h2>
+          </button>
+        </div>
+        <div class="controls">
+      
+        <button (mousedown)="startCharge()" (mouseup)="stopCharge()" 
+                (touchstart)="startCharge($event)" (touchend)="stopCharge($event)">
+          <img src="../../assets/powerButton.png" class="button-image" alt="Charge">
+          <h2><span *ngIf="this.showTooltips" class ="badge bdg-brown">Hold and release <br> to adjust power</span></h2>
+        </button>
+
+        <div class="current-shooting">
+          <div> Team: {{this.currentTeamToDisplay}}</div>
+          <div> Player: {{this.currentPlayerToDisplay}} </div>
+          <div> Shots: {{this.currentShotToDisplay}}</div>
+        </div>
+
+        <button  (click)="scrollToScores()">
+          <img src="../../assets/scoreButton.png" class="button-image" alt="Scores">
+          <h2><span *ngIf="this.showTooltips" class ="badge bdg-brown">Shows Score Table</span></h2>
+        </button>
+        
+        <button (click)="toggleTooltips()">
+          <img src="../../assets/infoButton.png" class="button-image" alt="Info">
+          <h2><span *ngIf="this.showTooltips" class ="badge bdg-brown">Tap to hide infos</span></h2>
+        </button>
+
+        <!-- Arrow Indicator -->
+        
+        <div class="space-before-arrow">.</div>
+        <div
+          class="arrow-indicator rotate"
+          [style.transform]="arrowRotation"
+          [style.color]="arrowColor"
+          >
+          ➛
+        </div>
+
+        <div class="angle">
+          {{parseToInt(this.angle)}}°
+        </div>
+
+        <button (click)="endGame()">
+          <img src="../../assets/quit-button.png" class="button-image" alt="Quit">
+          <h2><span *ngIf="this.showTooltips" class ="badge bdg-brown">Quit game</span></h2>
+        </button>
+          <!-- Points Display -->
+        <div class="points">
+          {{ team1Points }} : {{ team2Points }}
+        </div>
+        
       </div>
-    </button>
-    <div class="points">
-      {{ team1Points }}:{{ team2Points }}
+      
     </div>
   </div>
-  <div class="controls">
-    <button class="charge-button" 
-            (mousedown)="startCharge()" (mouseup)="stopCharge()" 
-            (touchstart)="startCharge($event)" (touchend)="stopCharge($event)">
-      <div class="img-buttons">
-        <img src="../../assets/powerButton.png" class="img-buttons"/>
-      </div>
-    </button>
-    <button class="angle-button" 
-            (mousedown)="startAngleCharge()" (mouseup)="stopAngleCharge()" 
-            (touchstart)="startAngleCharge($event)" (touchend)="stopAngleCharge($event)">
-      <div class="img-buttons">
-        <img src="../../assets/angleButton.png" class="img-buttons"/>
-      </div>
-    </button>
-  </div>
-  <div class="score-table">
+
+  <!-- Score Table -->
+  <div class="score-table" #scoreTable>
     <button (click)="scrollToGame()" (touchend)="scrollToGame($event)">Back to Game</button>
+    <!-- Team 1 Score Table -->
     <table>
       <tr>
-        <th>Team A</th>
+        <th>Team {{ team1.name }}</th>
         <th>Shots</th>
         <th>Points</th>
       </tr>
@@ -45,9 +86,10 @@
         <td>{{ team1Points }}</td>
       </tr>
     </table>
+    <!-- Team 2 Score Table -->
     <table>
       <tr>
-        <th>Team B</th>
+        <th>Team {{ team2.name }}</th>
         <th>Shots</th>
         <th>Points</th>
       </tr>

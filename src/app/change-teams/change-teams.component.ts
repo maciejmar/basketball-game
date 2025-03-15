@@ -3,10 +3,8 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { SQLiteService } from '../services/sqlite.service';
+import { Player } from '../models/player'
 
-interface Player {
-  name: string;
-}
 
 interface Team {
   name: string;
