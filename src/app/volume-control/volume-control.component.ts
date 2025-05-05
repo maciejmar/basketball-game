@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { VolumeService } from '../services/volume.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-volume-control',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './volume-control.component.html',
   styleUrl: './volume-control.component.scss'
 })

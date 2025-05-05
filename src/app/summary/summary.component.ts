@@ -6,6 +6,7 @@ import { App } from '@capacitor/app';
 import { Player } from '../models/player';
 import { GameStateService } from '../services/game-state.service';
 import { VolumeService } from '../services/volume.service';
+import { AdMob } from '@capacitor-community/admob';
 
 interface Team {
   name: string;
@@ -79,6 +80,49 @@ export class SummaryComponent implements OnInit {
   });
   }
 
+  // Called on "Return to Menu" button click.
+  async goToMenu() {
+    // Define the test interstitial ad unit ID provided by Google
+    const testInterstitialAdId = 'ca-app-pub-9509918464023539/1003953263';  //  prod id       //here is   test id: ca-app-pub-3940256099942544/1033173712
+    try {
+      // Prepare the interstitial ad
+      await AdMob.prepareInterstitial({
+        adId: testInterstitialAdId,
+        // Optional: additional configuration can be provided here.
+      });
+      console.log('Interstitial ad prepared.');
+
+      // Show the interstitial ad
+      await AdMob.showInterstitial();
+      console.log('Interstitial ad shown.');
+
+      // If the plugin does not resolve only after the ad is dismissed, you can use an event listener:
+      // AdMob.addListener('interstitialDismissed', () => {
+      //   console.log('Ad dismissed. Navigating to menu.');
+      //   this.router.navigate(['/menu']);
+      // });
+
+      // For many implementations, the promise resolves upon dismissal.
+      // Proceed to navigate after the ad has been shown/dismissed.
+      this.router.navigate(['/menu']);
+
+    } catch (error) {
+      console.error('!!!!!    Error loading or showing interstitial ad:', error);
+      // Fallback: directly navigate to the menu if the ad fails to load or show.
+
+     
+      //is.gameStateService.resetGameData();
+      //is.router.navigate(['/menu']);
+    }
+    finally {
+      console.log('now reset is been doing');
+      // always clear the service state
+      this.gameStateService.resetGameData();
+      this.router.navigate(['/menu']);
+    }
+  
+  }
+
   loadGameSummary(): void {
   if (this.gameStateService.team1 && this.gameStateService.team2) {
     this.team1 = this.gameStateService.team1;
@@ -97,13 +141,11 @@ export class SummaryComponent implements OnInit {
     }
   }
 
-  goToMenu(): void {
-    console.log('now reset is been doing');
-    this.gameStateService.resetGameData();
-    this.router.navigate(['/']);
-    //this.gameStateService.resetGameData();
-    
-  }
+  // goToMenu(): void {
+  //   console.log('now reset is been doing');
+  //   this.gameStateService.resetGameData();
+  //   this.router.navigate(['/']);
+  // }
 
   private initializeBackgroundMusic(): void {
     this.backgroundMusic = new Audio('assets/drumms.ogg');

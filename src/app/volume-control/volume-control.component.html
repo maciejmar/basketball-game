@@ -1,18 +1,15 @@
 <div class="volume-control">
     <button (click)="toggleMute()">
-      <img
+      <i
         *ngIf="isMuted"
-        src="assets/volume-mute.png"
-        alt="Unmute"
-        class="volume-icon"
-      />
-      <img
+        class="bi bi-volume-off-fill">
+      </i>
+    
+      <i
         *ngIf="!isMuted"
-        src="assets/volume-up.png"
-        alt="Mute"
-        class="volume-icon"
-      />
-    </button>
+        class="bi bi-volume-up-fill">
+    </i>
+  </button>
     <input
       type="range"
       min="0"
