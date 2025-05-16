@@ -7,9 +7,12 @@ android {
         applicationId "com.basketballshots.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 84
-        versionName "1.0.84"
+        versionCode 85
+        versionName "1.0.85"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        ndk {
+          abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        }
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
@@ -48,6 +51,7 @@ dependencies {
     implementation project(':capacitor-cordova-android-plugins')
     // Google Mobile Ads dependency:
     implementation 'com.google.android.gms:play-services-ads:21.1.0'
+    implementation 'com.google.android.ump:user-messaging-platform:3.1.0'
 }
 
 
