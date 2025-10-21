@@ -7,24 +7,18 @@ android {
         applicationId "com.basketballshots.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 85
-        versionName "1.0.85"
+        versionCode 88
+        versionName "88"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        ndk {
-          abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
-        }
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
+      manifestPlaceholders += [
+        ADMOB_APP_ID: "ca-app-pub-9509918464023539~9241520021"
+      ]
     }
-
-    compileOptions {
-    sourceCompatibility JavaVersion.VERSION_17
-    targetCompatibility JavaVersion.VERSION_17
-    }
-
     buildTypes {
         release {
             minifyEnabled false
@@ -49,11 +43,7 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
-    // Google Mobile Ads dependency:
-    implementation 'com.google.android.gms:play-services-ads:21.1.0'
-    implementation 'com.google.android.ump:user-messaging-platform:3.1.0'
 }
-
 
 apply from: 'capacitor.build.gradle'
 
@@ -63,5 +53,5 @@ try {
         apply plugin: 'com.google.gms.google-services'
     }
 } catch(Exception e) {
-    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work",e)
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }

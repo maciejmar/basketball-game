@@ -35,7 +35,7 @@ export class ChangeTeamsComponent implements OnInit {
 
   async showBannerAd() {
     const bannerOptions: BannerAdOptions = {
-      adId: 'ca-app-pub-9509918464023539/8867558460', // prod banner ad ID //here is test baner: id:     ca-app-pub-3940256099942544/6300978111
+      adId: 'ca-app-pub-3940256099942544/6300978111', // prod banner ad ID:  ca-app-pub-9509918464023539/8867558460   //here is test baner: id:     
       position: BannerAdPosition.BOTTOM_CENTER,        // Position at bottom center
       adSize: BannerAdSize.BANNER,              // Use a responsive size
       isTesting: false                             // Testing mode enabled                                

@@ -7,6 +7,7 @@ import { Player} from './../models/player';
 import { GameStateService } from '../services/game-state.service';
 import { VolumeService } from '../services/volume.service';
 import { AdMob, InterstitialAdPluginEvents } from '@capacitor-community/admob';
+import { PluginListenerHandle } from '@capacitor/core';
 interface Team {
   name: string;
   players: Player[];
@@ -754,64 +755,77 @@ onCanvasClick(event: MouseEvent) {
   // }
 
   async quitGame() {
-    if (window.confirm("Are you sure you want to quit?")) {
-      const adIdToUse = 'ca-app-pub-9509918464023539/8637232401'; // Your prod ID
-      let adLoadedSuccessfully = false; // Flag to track load status
-      let loadAttemptComplete = false; // Flag to indicate load process finished (success or failure)
-  
-      // --- Add Listeners *before* preparing the ad ---
-      const loadedListener = AdMob.addListener(InterstitialAdPluginEvents.Loaded, () => {
+  if (window.confirm("Are you sure you want to quit?")) {
+    const adIdToUse = 'ca-app-pub-9509918464023539/8637232401'; // Your prod ID
+    let adLoadedSuccessfully = false; // Flag to track load status
+    let loadAttemptComplete = false; // Flag to indicate load process finished (success or failure)
+    let loadedListener: PluginListenerHandle | undefined;
+    let failedToLoadListener: PluginListenerHandle | undefined;
+
+    try {
+
+      loadedListener = await AdMob.addListener(
+        InterstitialAdPluginEvents.Loaded,
+        () => {
           console.log('Interstitial ad finished loading.');
           adLoadedSuccessfully = true;
-          loadAttemptComplete = true; // Mark attempt as complete
-      });
-  
-      const failedToLoadListener = AdMob.addListener(InterstitialAdPluginEvents.FailedToLoad, (error) => {
+          loadAttemptComplete = true;
+        }
+      );
+
+      failedToLoadListener = await AdMob.addListener(
+        InterstitialAdPluginEvents.FailedToLoad,
+        (error) => {
           console.error('Interstitial ad failed to load:', error);
-          adLoadedSuccessfully = false; // Ensure flag is false on failure
-          loadAttemptComplete = true; // Mark attempt as complete
-      });
-  
+          adLoadedSuccessfully = false;
+          loadAttemptComplete = true;
+        }
+      );
+
       try {
         console.log('Preparing interstitial ad...');
         // prepareInterstitial starts the loading process. It does NOT wait for the ad to load.
         await AdMob.prepareInterstitial({ adId: adIdToUse });
-  
+
         // --- Wait for the adLoadedSuccessfully flag or a timeout ---
         // We'll wait here until either the loaded or failed event sets loadAttemptComplete to true
         const maxWaitTime = 5000; // 5 seconds timeout for loading
         const startTime = Date.now();
-  
+
         console.log('Waiting for interstitial ad to load...');
         while (!loadAttemptComplete && (Date.now() - startTime) < maxWaitTime) {
-            await new Promise(resolve => setTimeout(resolve, 50)); // Wait a little before checking flags again
+          await new Promise(resolve => setTimeout(resolve, 50)); // Wait a little before checking flags again
         }
-  
+
         // Check if the ad actually loaded within the time limit
         if (adLoadedSuccessfully) {
-           console.log('Interstitial ad is ready. Now showing ad...');
-           await AdMob.showInterstitial();
-           console.log('Interstitial ad was displayed and dismissed.');
-           // Optional: Listen for InterstitialAdPluginEvents.Dismissed here if needed
+          console.log('Interstitial ad is ready. Now showing ad...');
+          await AdMob.showInterstitial();
+          console.log('Interstitial ad was displayed and dismissed.');
+          // Optional: Listen for InterstitialAdPluginEvents.Dismissed here if needed
         } else {
-           console.log('Interstitial ad not loaded or timed out, skipping show.');
+          console.log('Interstitial ad not loaded or timed out, skipping show.');
         }
-  
+
       } catch (error) {
         // This catch is for errors during the prepare or show calls themselves,
         // not the ad loading failure which is handled by the FailedToLoad listener.
         console.error('Error during interstitial ad prepare/show process:', error);
       } finally {
-          // --- Clean up listeners ---
-          console.log('Removing ad listeners.');
-          if (loadedListener) loadedListener.remove();
-          if (failedToLoadListener) failedToLoadListener.remove();
+        // --- Clean up listeners ---
+        console.log('Removing ad listeners.');
+        if (loadedListener) await loadedListener.remove();
+        if (failedToLoadListener) await failedToLoadListener.remove();
       }
-  
+
+    } catch (error) {
+      console.error('Error during interstitial ad prepare/show process:', error);
+    } finally {
       // Always reset the game state regardless of ad success/failure
       this.resetGame();
     }
   }
+}
 
 
     // Access properties directly

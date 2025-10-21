@@ -8,7 +8,7 @@
           <button class="angle-button"
                   (mousedown)="startAngleCharge()" (mouseup)="stopAngleCharge()" 
                   (touchstart)="startAngleCharge($event)" (touchend)="stopAngleCharge($event)">
-            <img src="../../assets/angleButton.png" class="button-image" alt="Angle">
+            <img src="assets/angleButton.png" class="button-image" alt="Angle">
             <h2><span *ngIf="this.showTooltips" class ="badge bdg-brown">Hold to increase angle</span></h2>
           </button>
         </div>
@@ -16,7 +16,7 @@
       
         <button (mousedown)="startCharge()" (mouseup)="stopCharge()" 
                 (touchstart)="startCharge($event)" (touchend)="stopCharge($event)">
-          <img src="../../assets/powerButton.png" class="button-image" alt="Charge">
+          <img src="assets/powerButton.png" class="button-image" alt="Charge">
           <h2><span *ngIf="showTooltips" class ="badge bdg-brown">Hold and release <br> to adjust power</span></h2>
         </button>
 
@@ -27,12 +27,12 @@
         </div>
 
         <button  (click)="scrollToScores()">
-          <img src="../../assets/scoreButton.png" class="button-image" alt="Scores">
+          <img src="assets/scoreButton.png" class="button-image" alt="Scores">
           <h2><span *ngIf="showTooltips" class ="badge bdg-brown">Shows Score Table</span></h2>
         </button>
         
         <button (click)="toggleTooltips()">
-          <img src="../../assets/infoButton.png" class="button-image" alt="Info">
+          <img src="assets/infoButton.png" class="button-image" alt="Info">
           <h2><span *ngIf="showTooltips" class ="badge bdg-brown">Tap to hide infos</span></h2>
         </button>
 
@@ -52,7 +52,7 @@
         </div>
 
         <button (click)="endGame()">
-          <img src="../../assets/quit-button.png" class="button-image" alt="Quit">
+          <img src="assets/quit-button.png" class="button-image" alt="Quit">
           <h2><span *ngIf="showTooltips" class ="badge bdg-brown">Quit game</span></h2>
         </button>
           <!-- Points Display -->
@@ -61,7 +61,6 @@
         </div>
         
       </div>
-      
     </div>
   </div>
 

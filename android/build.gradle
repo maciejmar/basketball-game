@@ -7,8 +7,9 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.2.1'
-                  'com.google.gms:google-services:4.4.0'
+      classpath 'com.android.tools.build:gradle:8.3.0'
+      classpath 'com.google.gms:google-services:4.4.2'
+
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -25,4 +26,42 @@ allprojects {
 
 task clean(type: Delete) {
     delete rootProject.buildDir
+}
+// Wymuszamy Java 17 i jvmTarget=17 w CAŁYM projekcie — bez importów i bez KotlinCompile
+subprojects { subProj ->
+  afterEvaluate {
+
+    // Dla modułów Android (app i pluginy)
+    if (subProj.hasProperty("android")) {
+      subProj.android {
+        compileOptions {
+          sourceCompatibility JavaVersion.VERSION_17
+          targetCompatibility JavaVersion.VERSION_17
+        }
+        // Jeśli moduł ma kotlinOptions, ustaw jvmTarget
+        if (hasProperty("kotlinOptions")) {
+          kotlinOptions {
+            jvmTarget = "17"
+          }
+        }
+      }
+    }
+
+    // Dla zwykłych projektów Javy (na wszelki wypadek)
+    subProj.plugins.withId("java") {
+      subProj.java {
+        toolchain {
+          languageVersion = JavaLanguageVersion.of(17)
+        }
+      }
+    }
+
+    // Ustaw jvmTarget=17 dla WSZYSTKICH tasków Kotlin, o ile istnieją
+    subProj.tasks
+      .matching { t -> t.hasProperty("kotlinOptions") }
+      .configureEach {
+        // nie używamy klasy KotlinCompile — żadnych importów nie trzeba
+        kotlinOptions.jvmTarget = "17"
+      }
+  }
 }

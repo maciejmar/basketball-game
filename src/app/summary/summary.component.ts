@@ -83,7 +83,7 @@ export class SummaryComponent implements OnInit {
   // Called on "Return to Menu" button click.
   async goToMenu() {
     // Define the test interstitial ad unit ID provided by Google
-    const testInterstitialAdId = 'ca-app-pub-9509918464023539/1003953263';  //  prod id       //here is   test id: ca-app-pub-3940256099942544/1033173712
+    const testInterstitialAdId = 'ca-app-pub-3940256099942544/1033173712';  //  prod id:   ca-app-pub-9509918464023539/1003953263    //here is   test id: 
     try {
       // Prepare the interstitial ad
       await AdMob.prepareInterstitial({
@@ -175,7 +175,6 @@ export class SummaryComponent implements OnInit {
       this.backgroundMusic.currentTime = 0;
     }
   }
-
   ngOnDestroy(): void {
     this.stopBackgroundMusic();
     

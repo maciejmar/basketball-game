@@ -4,9 +4,11 @@ import { RouterModule } from '@angular/router';
 import { SQLiteService } from './services/sqlite.service';
 import { AdMob } from '@capacitor-community/admob';
 import { Capacitor } from '@capacitor/core';
-import { Plugins } from '@capacitor/core';
-const { GoogleUMP } = Plugins;
+import { App } from '@capacitor/app';
+import { Device } from '@capacitor/device';
 import { AdmobService }  from '../app/admob.service';
+
+
 
 declare var Ump: {
   verifyConsent(
