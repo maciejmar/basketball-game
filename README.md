@@ -1,5 +1,7 @@
 # BasketballGame is a basketball shots for two players game. It is possible to play with computer. 
 
+# Zmiany w kodzie frontu → npm run build → npx cap copy android → (Android Studio) Sync + Build AAB.
+
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.3.0.
 
 ## Development server

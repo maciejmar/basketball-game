@@ -1,26 +1,36 @@
 <div class="start-screen">
-    <div class="card menu-card">
-        <p class="text-center mb-4"></p>
-        <div class="row justify-content-center">
-        <div class="col-md-6">
-            <button (click)="startGame()" class="btn btn-primary btn-block mb-4">Play</button>
-            <button (click)="playWithComputer()" class="btn btn-secondary btn-block mb-4">Play with Computer</button>
-            <select id="difficulty" [(ngModel)]="difficulty" class="form-control form-select mb-4">
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-            </select>
-            <button (click)="changeTeams()" class="btn btn-info btn-block mb-4">Change Teams</button>
-            <button (click)="quitApp()" class="btn btn-danger btn-block mb-4">Quit</button>
-        </div>
-        </div>
+  <div class="screen-overlay"></div>
+
+  <section class="hero-panel">
+    <div class="brand-kicker">Street Tournament</div>
+    <h1 class="brand-title">Basketball Shots</h1>
+    <p class="brand-copy">
+      Quick-fire shooting duel with custom teams, local rivalry and clean arcade pacing.
+    </p>
+
+    <div class="menu-panel">
+      <button (click)="startGame()" class="menu-button menu-button-primary">Start Match</button>
+      <button (click)="playWithComputer()" class="menu-button">Play vs Computer</button>
+
+      <label class="difficulty-panel" for="difficulty">
+        <span class="difficulty-label">Computer Difficulty</span>
+        <select id="difficulty" [(ngModel)]="difficulty" class="difficulty-select">
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </label>
+
+      <div class="menu-grid">
+        <button (click)="changeTeams()" class="menu-button menu-button-small">Edit Teams</button>
+        <button (click)="howToPlay()" class="menu-button menu-button-small">How To Play</button>
+      </div>
+
+      <button (click)="quitApp()" class="menu-button menu-button-danger">Quit Game</button>
     </div>
-    <!-- <div class="card volume-card">
-        <label for="volume">Volume:</label>
-            <input id="volume" type="range" min="0" max="1" step="0.1" [(ngModel)]="musicVolume" (change)="updateMusicVolume()" />
-    </div> -->
-    
-    
+  </section>
+
+  <div class="volume-dock">
     <app-volume-control></app-volume-control>
+  </div>
 </div>
-  

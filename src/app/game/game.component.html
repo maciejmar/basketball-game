@@ -1,73 +1,76 @@
 <div class="game-container" #gameContainer>
   <div class="canvas-container">
     <canvas #gameCanvas></canvas>
- 
-    <!-- Controls -->
-  <div class="control-rows">
-        <div class="controls-bottom">
-          <button class="angle-button"
-                  (mousedown)="startAngleCharge()" (mouseup)="stopAngleCharge()" 
-                  (touchstart)="startAngleCharge($event)" (touchend)="stopAngleCharge($event)">
-            <img src="assets/angleButton.png" class="button-image" alt="Angle">
-            <h2><span *ngIf="this.showTooltips" class ="badge bdg-brown">Hold to increase angle</span></h2>
-          </button>
-        </div>
-        <div class="controls">
-      
-        <button (mousedown)="startCharge()" (mouseup)="stopCharge()" 
-                (touchstart)="startCharge($event)" (touchend)="stopCharge($event)">
+
+    <div class="control-rows">
+      <div class="controls-bottom">
+        <button
+          class="angle-button"
+          (mousedown)="startAngleCharge()"
+          (mouseup)="stopAngleCharge()"
+          (touchstart)="startAngleCharge($event)"
+          (touchend)="stopAngleCharge($event)"
+        >
+          <img src="assets/angleButton.png" class="button-image" alt="Angle">
+          <h2><span *ngIf="this.showTooltips" class="badge bdg-brown">Hold to increase angle</span></h2>
+        </button>
+      </div>
+
+      <div class="controls">
+        <button
+          (mousedown)="startCharge()"
+          (mouseup)="stopCharge()"
+          (touchstart)="startCharge($event)"
+          (touchend)="stopCharge($event)"
+        >
           <img src="assets/powerButton.png" class="button-image" alt="Charge">
-          <h2><span *ngIf="showTooltips" class ="badge bdg-brown">Hold and release <br> to adjust power</span></h2>
+          <h2><span *ngIf="showTooltips" class="badge bdg-brown">Hold and release <br> to adjust power</span></h2>
         </button>
 
         <div class="current-shooting">
-          <div> Team: {{this.currentTeamToDisplay}}</div>
-          <div> Player: {{this.currentPlayerToDisplay}} </div>
-          <div> Shots: {{this.currentShotToDisplay}}</div>
+          <div>Team: {{ this.currentTeamToDisplay }}</div>
+          <div>Player: {{ this.currentPlayerToDisplay }}</div>
+          <div>Shots: {{ this.currentShotToDisplay }}</div>
         </div>
 
-        <button  (click)="scrollToScores()">
+        <button (click)="scrollToScores()">
           <img src="assets/scoreButton.png" class="button-image" alt="Scores">
-          <h2><span *ngIf="showTooltips" class ="badge bdg-brown">Shows Score Table</span></h2>
-        </button>
-        
-        <button (click)="toggleTooltips()">
-          <img src="assets/infoButton.png" class="button-image" alt="Info">
-          <h2><span *ngIf="showTooltips" class ="badge bdg-brown">Tap to hide infos</span></h2>
+          <h2><span *ngIf="showTooltips" class="badge bdg-brown">Shows Score Table</span></h2>
         </button>
 
-        <!-- Arrow Indicator -->
-        
+        <button (click)="toggleTooltips()">
+          <img src="assets/infoButton.png" class="button-image" alt="Info">
+          <h2><span *ngIf="showTooltips" class="badge bdg-brown">Tap to hide infos</span></h2>
+        </button>
+
         <div class="space-before-arrow">.</div>
         <div
           class="arrow-indicator rotate"
           [style.transform]="arrowRotation"
           [style.color]="arrowColor"
-          >
-          ➛
+        >
+          &#10148;
         </div>
 
         <div class="angle">
-          {{parseToInt(this.angle)}}°
+          {{ parseToInt(this.angle) }}&deg;
         </div>
 
-        <button (click)="endGame()">
+        <button (click)="showQuitModal = true">
           <img src="assets/quit-button.png" class="button-image" alt="Quit">
-          <h2><span *ngIf="showTooltips" class ="badge bdg-brown">Quit game</span></h2>
+          <h2><span *ngIf="showTooltips" class="badge bdg-brown">Quit game</span></h2>
         </button>
-          <!-- Points Display -->
+
         <div class="points">
           {{ team1Points }} : {{ team2Points }}
         </div>
-        
       </div>
     </div>
   </div>
 
-  <!-- Score Table -->
   <div class="score-table" #scoreTable>
     <button (click)="scrollToGame()" (touchend)="scrollToGame($event)">Back to Game</button>
-    <!-- Team 1 Score Table -->
+
     <table>
       <tr>
         <th>Team {{ team1.name }}</th>
@@ -85,7 +88,7 @@
         <td>{{ team1Points }}</td>
       </tr>
     </table>
-    <!-- Team 2 Score Table -->
+
     <table>
       <tr>
         <th>Team {{ team2.name }}</th>
@@ -103,5 +106,61 @@
         <td>{{ team2Points }}</td>
       </tr>
     </table>
+  </div>
+</div>
+
+<div class="match-end-overlay" *ngIf="showMatchEnd">
+  <div class="match-end-modal">
+    <h1 class="match-end-title">MATCH OVER!</h1>
+    <div class="match-end-scores">
+      <div class="team-result">
+        <div class="team-name">{{ team1.name }}</div>
+        <div class="team-points">{{ team1Points }}</div>
+      </div>
+      <div class="vs">:</div>
+      <div class="team-result">
+        <div class="team-name">{{ team2.name }}</div>
+        <div class="team-points">{{ team2Points }}</div>
+      </div>
+    </div>
+
+    <div class="match-winner" *ngIf="team1Points !== team2Points">
+      Winner: {{ matchWinnerName }}
+    </div>
+    <div class="match-winner" *ngIf="team1Points === team2Points">
+      Draw game.
+    </div>
+
+    <div class="match-awards">
+      <div class="match-award-card">
+        <div class="match-award-label">MVP</div>
+        <div class="match-award-value">{{ matchMvp?.name || 'No player' }}</div>
+        <div class="match-award-meta">{{ matchMvp?.teamName || '-' }}</div>
+      </div>
+
+      <div class="match-award-card">
+        <div class="match-award-label">Top Scorer</div>
+        <div class="match-award-value">{{ matchTopScorer?.points || 0 }} pts</div>
+        <div class="match-award-meta">{{ matchTopScorer?.name || 'No player' }}</div>
+      </div>
+
+      <div class="match-award-card">
+        <div class="match-award-label">Best Accuracy</div>
+        <div class="match-award-value">{{ matchBestAccuracy ? getPlayerAccuracy(matchBestAccuracy) : 0 }}%</div>
+        <div class="match-award-meta">{{ matchBestAccuracy?.name || 'No player' }}</div>
+      </div>
+    </div>
+
+    <button class="go-summary-btn" (click)="endGame()">Go to Summary</button>
+  </div>
+</div>
+
+<div class="quit-overlay" *ngIf="showQuitModal">
+  <div class="quit-modal">
+    <img src="assets/end_screen.png" class="end-screen-img floating" alt="Quit?">
+    <div class="quit-buttons">
+      <button class="quit-btn confirm" (click)="endGame()">QUIT</button>
+      <button class="quit-btn cancel" (click)="showQuitModal = false">RETURN</button>
+    </div>
   </div>
 </div>

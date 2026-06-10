@@ -100,6 +100,10 @@ export class StartScreenComponent {
     this.router.navigate(['/changeNames']);
   }
 
+  howToPlay() {
+    this.router.navigate(['/how-to-play']);
+  }
+
   quitApp() {
     if (window.confirm("Are you sure you want to quit?")) {
       App.exitApp();

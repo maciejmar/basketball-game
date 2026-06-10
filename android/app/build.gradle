@@ -7,8 +7,8 @@ android {
         applicationId "com.basketballshots.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 88
-        versionName "88"
+        versionCode 102
+        versionName "102"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -43,15 +43,17 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+    implementation "net.zetetic:sqlcipher-android:4.9.0"
+}
+configurations.all {
+  exclude group: "net.zetetic", module: "android-database-sqlcipher"
 }
 
 apply from: 'capacitor.build.gradle'
 
-try {
-    def servicesJSON = file('google-services.json')
-    if (servicesJSON.text) {
-        apply plugin: 'com.google.gms.google-services'
-    }
-} catch(Exception e) {
-    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+if (file('google-services.json').exists()) {
+  apply plugin: 'com.google.gms.google-services'
+} else {
+  logger.lifecycle("google-services.json not found; google-services plugin not applied")
+
 }

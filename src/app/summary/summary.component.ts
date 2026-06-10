@@ -21,12 +21,7 @@ interface Team {
   styleUrls: ['./summary.component.scss'],
 })
 export class SummaryComponent implements OnInit {
-  // team1: Team = { name: 'Team 1', players: [] };
-  // team2: Team = { name: 'Team 2', players: [] };
-  // team1Points: number = 0;
-  // team2Points: number = 0;
   summaryMessage: string = '';
-  //public musicVolume = 0; // Default volume
   private backgroundMusic: HTMLAudioElement | null = null;
   public isMusicPlaying = false;
 
@@ -68,6 +63,35 @@ export class SummaryComponent implements OnInit {
   get team2(): Team { return this.gameStateService.team2; }
   set team2(value: Team) { this.gameStateService.team2 = value; }
 
+  get winnerName(): string {
+    if (this.team1Points === this.team2Points) {
+      return 'Draw Game';
+    }
+
+    return this.team1Points > this.team2Points ? this.team1.name : this.team2.name;
+  }
+
+  get mvp() {
+    return this.getRankedPlayers()[0] ?? null;
+  }
+
+  get topScorer() {
+    return [...this.getAllPlayers()].sort((a, b) => {
+      const pointsDelta = (b.points ?? 0) - (a.points ?? 0);
+      if (pointsDelta !== 0) {
+        return pointsDelta;
+      }
+
+      return this.getAccuracy(b) - this.getAccuracy(a);
+    })[0] ?? null;
+  }
+
+  get bestAccuracy() {
+    return [...this.getAllPlayers()]
+      .filter(player => (player.shots ?? 0) > 0)
+      .sort((a, b) => this.getAccuracy(b) - this.getAccuracy(a))[0] ?? null;
+  }
+
 
   ngOnInit(): void {
     this.loadGameSummary();
@@ -83,7 +107,7 @@ export class SummaryComponent implements OnInit {
   // Called on "Return to Menu" button click.
   async goToMenu() {
     // Define the test interstitial ad unit ID provided by Google
-    const testInterstitialAdId = 'ca-app-pub-3940256099942544/1033173712';  //  prod id:   ca-app-pub-9509918464023539/1003953263    //here is   test id: 
+    const testInterstitialAdId = 'ca-app-pub-9509918464023539/1003953263';  //  prod id:   ca-app-pub-9509918464023539/1003953263    //here is   test id: ca-app-pub-3940256099942544/1033173712
     try {
       // Prepare the interstitial ad
       await AdMob.prepareInterstitial({
@@ -199,6 +223,40 @@ export class SummaryComponent implements OnInit {
         });
       }
     }
+  }
+
+  getAccuracy(player: Player): number {
+    const shots = player.shots ?? 0;
+    const points = player.points ?? 0;
+
+    if (shots === 0) {
+      return 0;
+    }
+
+    return Math.round((points / (shots * 3)) * 100);
+  }
+
+  private getAllPlayers(): Array<Player & { teamName: string }> {
+    return [
+      ...this.team1Players.map(player => ({ ...player, teamName: this.team1.name })),
+      ...this.team2Players.map(player => ({ ...player, teamName: this.team2.name })),
+    ];
+  }
+
+  private getRankedPlayers(): Array<Player & { teamName: string }> {
+    return [...this.getAllPlayers()].sort((a, b) => {
+      const pointsDelta = (b.points ?? 0) - (a.points ?? 0);
+      if (pointsDelta !== 0) {
+        return pointsDelta;
+      }
+
+      const accuracyDelta = this.getAccuracy(b) - this.getAccuracy(a);
+      if (accuracyDelta !== 0) {
+        return accuracyDelta;
+      }
+
+      return (a.shots ?? 0) - (b.shots ?? 0);
+    });
   }
 
 }

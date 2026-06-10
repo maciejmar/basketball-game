@@ -1,0 +1,66 @@
+<div class="tutorial-container">
+
+  <!-- Canvas area -->
+  <div class="canvas-wrapper">
+    <canvas #tutorialCanvas></canvas>
+  </div>
+
+  <!-- Controls (mirroring game layout) -->
+  <div class="control-rows">
+
+    <div class="controls-bottom">
+      <div class="btn-wrap">
+        <div class="pulse-arrow angle-arrow" [class.active]="phase === 'angle'">⬆</div>
+        <button class="angle-button" disabled>
+          <img src="assets/angleButton.png" class="button-image" alt="Angle">
+        </button>
+      </div>
+    </div>
+
+    <div class="controls">
+
+      <div class="btn-wrap">
+        <div class="pulse-arrow power-arrow" [class.active]="phase === 'power'">⬆</div>
+        <button disabled>
+          <img src="assets/powerButton.png" class="button-image" alt="Power">
+        </button>
+      </div>
+
+      <div class="current-shooting">
+        <div>Team: Team 1</div>
+        <div>Player: Player 1</div>
+        <div>Shots: 0</div>
+      </div>
+
+      <button disabled>
+        <img src="assets/scoreButton.png" class="button-image" alt="Scores">
+      </button>
+
+      <button disabled>
+        <img src="assets/infoButton.png" class="button-image" alt="Info">
+      </button>
+
+      <div class="space-before-arrow">.</div>
+      <div class="arrow-indicator" [style.transform]="arrowRotation">➛</div>
+      <div class="angle">{{ parseToInt(angle) }}°</div>
+
+      <button disabled>
+        <img src="assets/quit-button.png" class="button-image" alt="Quit">
+      </button>
+
+      <div class="points">0 : 0</div>
+
+    </div>
+  </div>
+
+  <!-- Phase label -->
+  <div class="phase-label" [ngSwitch]="phase">
+    <span *ngSwitchCase="'power'">Hold the power button to charge your shot!</span>
+    <span *ngSwitchCase="'angle'">Hold the angle button to set shot angle!</span>
+    <span *ngSwitchCase="'shoot'">Watch the ball fly!</span>
+  </div>
+
+  <!-- Back button -->
+  <button class="back-btn" (click)="goToMenu()">← BACK TO MENU</button>
+
+</div>

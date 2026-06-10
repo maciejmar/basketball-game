@@ -39,11 +39,14 @@ constructor(private sqliteService: SQLiteService, private admob:   AdmobService
 
   async ngOnInit() {
     await this.sqliteService.initializeDatabase();
-    
-  
-  // 2) Wait for device ready, then run consent + ads
-  document.addEventListener('deviceready', () => this.startUp(), { once: true });
-}
+
+    // Try deviceready (Cordova), fallback to immediate init for Capacitor
+    const timeout = setTimeout(() => this.startUp(), 3000);
+    document.addEventListener('deviceready', () => {
+      clearTimeout(timeout);
+      this.startUp();
+    }, { once: true });
+  }
 
 private async startUp(): Promise<void> {
   console.log('⚡️ AppComponent startUp fired');
@@ -58,13 +61,18 @@ private async startUp(): Promise<void> {
 
 private runConsentFlow(): Promise<void> {
   return new Promise((resolve) => {
-    Ump.verifyConsent(
-      /*isAgeConsent*/ false,
-      /*isDebug*/       false,
-      /*testDeviceHashId*/ '',
-      () => resolve(),       // form shown or not needed
-      () => resolve()        // on error we still proceed
-    );
+    try {
+      if (typeof Ump === 'undefined') { resolve(); return; }
+      Ump.verifyConsent(
+        /*isAgeConsent*/ false,
+        /*isDebug*/       false,
+        /*testDeviceHashId*/ '',
+        () => resolve(),
+        () => resolve()
+      );
+    } catch {
+      resolve();
+    }
   });
 }
 

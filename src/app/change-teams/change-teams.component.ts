@@ -1,11 +1,10 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
-import { AdMob, BannerAdOptions, BannerAdPosition, BannerAdSize } from '@capacitor-community/admob';
+import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { SQLiteService } from '../services/sqlite.service';
-import { Player } from '../models/player'
-
+import { Player } from '../models/player';
+import { AdmobService } from '../admob.service';
 
 interface Team {
   name: string;
@@ -19,40 +18,28 @@ interface Team {
   templateUrl: './change-teams.component.html',
   styleUrls: ['./change-teams.component.scss'],
 })
-export class ChangeTeamsComponent implements OnInit {
+export class ChangeTeamsComponent implements OnInit, AfterViewInit, OnDestroy {
   team1: Team = { name: 'Team 1', players: Array(5).fill({ name: '' }) };
   team2: Team = { name: 'Team 2', players: Array(5).fill({ name: '' }) };
 
-  constructor(private router: Router, private sqliteService: SQLiteService) {}
+  constructor(private router: Router, private sqliteService: SQLiteService, private admobService: AdmobService) {}
 
   ngOnInit() {
     this.loadTeams();
   }
 
   ngAfterViewInit() {
-    this.showBannerAd();
+    this.admobService.showBanner();
   }
 
-  async showBannerAd() {
-    const bannerOptions: BannerAdOptions = {
-      adId: 'ca-app-pub-3940256099942544/6300978111', // prod banner ad ID:  ca-app-pub-9509918464023539/8867558460   //here is test baner: id:     
-      position: BannerAdPosition.BOTTOM_CENTER,        // Position at bottom center
-      adSize: BannerAdSize.BANNER,              // Use a responsive size
-      isTesting: false                             // Testing mode enabled                                
-    };
-    try {
-      await AdMob.showBanner(bannerOptions);
-      console.log('Banner ad displayed.');
-    } catch (error) {
-      console.error('Error showing banner ad:', error);
-    }
+  ngOnDestroy() {
+    this.admobService.removeBanner();
   }
-
 
   async saveTeams() {
     await this.sqliteService.saveTeams(this.team1, this.team2);
     alert('Teams saved successfully!');
-    this.router.navigate(['/']);
+    this.router.navigate(['/menu']);
   }
 
   async loadTeams() {

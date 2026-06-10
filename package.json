@@ -1,6 +1,6 @@
 {
   "name": "basketball-game",
-  "version": "0.0.0",
+  "version": "1.0.94",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -22,11 +22,11 @@
     "@angular/router": "^18.2.13",
     "@angular/service-worker": "^18.2.13",
     "@angular/ssr": "^18.2.19",
-    "@capacitor-community/admob": "^7.0.3",
-    "@capacitor-community/sqlite": "^7.0.1",
-    "@capacitor/android": "^7.4.3",
+    "@capacitor-community/admob": "7.2.0",
+    "@capacitor-community/sqlite": "7.0.2",
+    "@capacitor/android": "7.4.4",
     "@capacitor/app": "^7.1.0",
-    "@capacitor/core": "^7.4.3",
+    "@capacitor/core": "7.4.4",
     "@capacitor/device": "^7.0.2",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",

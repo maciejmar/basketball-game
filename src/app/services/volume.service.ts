@@ -5,7 +5,7 @@ import { BehaviorSubject } from 'rxjs';
   providedIn: 'root'
 })
 export class VolumeService {
-  private volumeSubject = new BehaviorSubject<number>(1); // Default volume is 1 (max)
+  private volumeSubject = new BehaviorSubject<number>(0.2); // Default volume is 0.2 (20%)
   constructor() { }
    // Observable to allow components to subscribe to volume changes
    volume$ = this.volumeSubject.asObservable();

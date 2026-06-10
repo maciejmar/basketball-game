@@ -1,0 +1,5 @@
+{
+	"appId": "com.basketballshots.app",
+	"appName": "basketballShots",
+	"webDir": "dist/basketball-game/browser"
+}

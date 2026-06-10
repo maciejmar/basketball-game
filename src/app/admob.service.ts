@@ -11,26 +11,42 @@ import { environment } from '../environments/environment.prod';
 export class AdmobService {
   private bannerId = environment.admob.banner;
   private interstitialId = environment.admob.interstitial;
+  private isInitialized = false;
 
   async init() {
-    await AdMob.initialize();
+    try {
+      await AdMob.initialize();
+      this.isInitialized = true;
+    } catch (e) {
+      console.error('AdMob init error:', e);
+    }
   }
 
   async showBanner() {
-    const opts: BannerAdOptions = {
-      adId:    this.bannerId,
-      adSize:  BannerAdSize.ADAPTIVE_BANNER,
-      position:BannerAdPosition.BOTTOM_CENTER,
-      isTesting: !environment.production
-    };
-    await AdMob.showBanner(opts);
+    if (!this.isInitialized) return;
+    try {
+      const opts: BannerAdOptions = {
+        adId:    this.bannerId,
+        adSize:  BannerAdSize.ADAPTIVE_BANNER,
+        position:BannerAdPosition.BOTTOM_CENTER,
+        isTesting: !environment.production
+      };
+      await AdMob.showBanner(opts);
+    } catch (e) {
+      console.error('showBanner error:', e);
+    }
   }
 
   async removeBanner() {
-    await AdMob.removeBanner();
+    try {
+      await AdMob.removeBanner();
+    } catch (e) {
+      console.error('removeBanner error:', e);
+    }
   }
 
   async showInterstitial() {
+    if (!this.isInitialized) return;
     try {
       await AdMob.prepareInterstitial({ adId: this.interstitialId, isTesting: !environment.production });
       await AdMob.showInterstitial();

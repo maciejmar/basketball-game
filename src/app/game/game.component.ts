@@ -7,11 +7,14 @@ import { Player} from './../models/player';
 import { GameStateService } from '../services/game-state.service';
 import { VolumeService } from '../services/volume.service';
 import { AdMob, InterstitialAdPluginEvents } from '@capacitor-community/admob';
+import { AdmobService } from '../admob.service';
 import { PluginListenerHandle } from '@capacitor/core';
 interface Team {
   name: string;
   players: Player[];
 }
+
+type PlayerWithTeam = Player & { teamName: string };
 
 @Component({
   selector: 'app-game',
@@ -20,7 +23,7 @@ interface Team {
   templateUrl: './game.component.html',
   styleUrls: ['./game.component.scss']
 })
-export class GameComponent implements OnInit {
+export class GameComponent implements OnInit, OnDestroy {
   @ViewChild('gameCanvas', { static: true }) gameCanvas!: ElementRef<HTMLCanvasElement>;
   private summaryMessage: string = '';
   private initialBallXPosition = 60;
@@ -77,6 +80,8 @@ export class GameComponent implements OnInit {
   private coefficientOfRestitution = 0.6; 
   public showModal = false;
   public modalMessage = '';
+  public showQuitModal = false;
+  public showMatchEnd = false;
   private xPositionUnchangedStartTime: number | null = null; 
   private infoIconImage: HTMLImageElement | null = null;
   private infoIconBounds: { x: number; y: number; width: number; height: number } | null = null;
@@ -131,7 +136,7 @@ export class GameComponent implements OnInit {
   // team1Points = 0;
   // team2Points = 0;
   constructor(@Inject(PLATFORM_ID) private platformId: Object, private router: Router, private sqliteService: SQLiteService,
-   private gameStateService: GameStateService, private volumeService: VolumeService ) {
+   private gameStateService: GameStateService, private volumeService: VolumeService, private admobService: AdmobService) {
     const navigation = this.router.getCurrentNavigation();
     if (navigation && navigation.extras.state) {
       this.playWithComputer = navigation.extras.state['playWithComputer'] || false;
@@ -277,6 +282,7 @@ export class GameComponent implements OnInit {
 
     window.addEventListener('click', () => this.initializeAudio());
     window.addEventListener('keydown', () => this.initializeAudio());
+    window.addEventListener('touchstart', () => this.initializeAudio());
   }
 
   initializeEventListeners() {
@@ -303,19 +309,16 @@ export class GameComponent implements OnInit {
       this.bounceSound = new Audio('assets/bounce.ogg');
       this.rimSound = new Audio('assets/rim.ogg');
       this.scoreSound = new Audio('assets/score.ogg');
-    }
-    // Set initial volume based on the service
-    const initialVolume = this.volumeService.getVolume();
-    this.setAudioVolume(initialVolume);
 
-    // Subscribe to volume changes
-    this.volumeService.volume$.subscribe((volume) => {
-      this.setAudioVolume(volume);
-    });
-    // Subscribe to volume changes
-    this.volumeService.volume$.subscribe((volume) => {
-      this.setAudioVolume(volume);
-    });
+      // Set initial volume based on the service
+      const initialVolume = this.volumeService.getVolume();
+      this.setAudioVolume(initialVolume);
+
+      // Subscribe to volume changes
+      this.volumeService.volume$.subscribe((volume) => {
+        this.setAudioVolume(volume);
+      });
+    }
   }
 
 
@@ -330,7 +333,6 @@ setAudioVolume(volume: number) {
   @HostListener('window:keydown', ['$event'])
   keyDown(event: KeyboardEvent) {
     if (!this.userInteracted) {
-      this.userInteracted = true;
       this.initializeAudio();
     }
 
@@ -347,7 +349,7 @@ setAudioVolume(volume: number) {
       clearTimeout(this.angleResetTimeout);
     }
     if (event.code === 'KeyQ') {
-      this.quitGame();
+      this.showQuitModal = true;
     }
   }
 
@@ -412,6 +414,35 @@ onCanvasClick(event: MouseEvent) {
   get arrowRotation(): string {
     const rotationAngle = this.angle+180; // Adjust so 45 degrees corresponds to 0 rotation
     return `rotate(${rotationAngle}deg)`;
+  }
+
+  get matchWinnerName(): string {
+    if (this.team1Points === this.team2Points) {
+      return 'Draw Game';
+    }
+
+    return this.team1Points > this.team2Points ? this.team1.name : this.team2.name;
+  }
+
+  get matchMvp(): PlayerWithTeam | null {
+    return this.getRankedPlayers()[0] ?? null;
+  }
+
+  get matchTopScorer(): PlayerWithTeam | null {
+    return [...this.getAllPlayers()].sort((a, b) => {
+      const pointsDelta = (b.points ?? 0) - (a.points ?? 0);
+      if (pointsDelta !== 0) {
+        return pointsDelta;
+      }
+
+      return this.getPlayerAccuracy(b) - this.getPlayerAccuracy(a);
+    })[0] ?? null;
+  }
+
+  get matchBestAccuracy(): PlayerWithTeam | null {
+    return [...this.getAllPlayers()]
+      .filter(player => (player.shots ?? 0) > 0)
+      .sort((a, b) => this.getPlayerAccuracy(b) - this.getPlayerAccuracy(a))[0] ?? null;
   }
   
 
@@ -648,9 +679,8 @@ onCanvasClick(event: MouseEvent) {
         console.log('RESETING');
         console.log('nextTurn players points checking at the end ', this.team1Players);
         console.log('nextTurn players points checking at the end ', this.team2Players);
-        this.team2Players[this.currentPlayerIndex].shots =+2; 
-        console.log('this.team2Players[this.currentPlayerIndex].shots =+1; ',this.team2Players[this.currentPlayerIndex].shots );
-        this.endGame();
+        const p = this.team2Players[this.currentPlayerIndex]; if (p) p.shots = (p.shots ?? 0) + 1;
+        this.showMatchEnd = true;
         return;
       }
 
@@ -756,7 +786,7 @@ onCanvasClick(event: MouseEvent) {
 
   async quitGame() {
   if (window.confirm("Are you sure you want to quit?")) {
-    const adIdToUse = 'ca-app-pub-9509918464023539/8637232401'; // Your prod ID
+    const adIdToUse = 'ca-app-pub-9509918464023539/8637232401'; // <- Your prod ID, and here tets id:ca-app-pub-9509918464023539/1003953263
     let adLoadedSuccessfully = false; // Flag to track load status
     let loadAttemptComplete = false; // Flag to indicate load process finished (success or failure)
     let loadedListener: PluginListenerHandle | undefined;
@@ -832,7 +862,7 @@ onCanvasClick(event: MouseEvent) {
     get team1Name() { return this.gameStateService.team1.name; }
     get team2Name() { return this.gameStateService.team2.name; }
 
-  endGame() {
+  async endGame() {
     this.gameStateService.team1 = {
       name: this.team1Name,
       players: JSON.parse(JSON.stringify(this.team1Players)),
@@ -844,12 +874,8 @@ onCanvasClick(event: MouseEvent) {
     this.gameStateService.team1Points = this.team1Points;
     this.gameStateService.team2Points = this.team2Points;
     this.resetNotFull();
+    await this.admobService.showInterstitial();
     this.router.navigate(['/summary']);
-    //only for test
-    //this.resetGame();
-    return;
-
-    
   }
 
   resetNotFull(){
@@ -1210,13 +1236,7 @@ onCanvasClick(event: MouseEvent) {
     this.charging = false;
     this.shoot();
     if (this.swooshSound) {
-      try {
-        this.swooshSound = new Audio('assets/swooh.mp3');
-      } catch (e) {
-        console.error('Audio initialization failed:', e);
-      }
       this.playSound(this.swooshSound);
-      this.swooshSound.onerror = () => console.error('Failed to load swoosh sound.');
     }
     this.playerState = 'player_3';
     setTimeout(() => {
@@ -1336,6 +1356,40 @@ onCanvasClick(event: MouseEvent) {
         // this.drawTooltip(870, canvasHeight - 690, infoTooltip);
         this.ctx.restore();
       } 
+  }
+
+  getPlayerAccuracy(player: Player): number {
+    const shots = player.shots ?? 0;
+    const points = player.points ?? 0;
+
+    if (shots === 0) {
+      return 0;
+    }
+
+    return Math.round((points / (shots * 3)) * 100);
+  }
+
+  private getAllPlayers(): PlayerWithTeam[] {
+    return [
+      ...this.team1Players.map(player => ({ ...player, teamName: this.team1.name })),
+      ...this.team2Players.map(player => ({ ...player, teamName: this.team2.name })),
+    ];
+  }
+
+  private getRankedPlayers(): PlayerWithTeam[] {
+    return [...this.getAllPlayers()].sort((a, b) => {
+      const pointsDelta = (b.points ?? 0) - (a.points ?? 0);
+      if (pointsDelta !== 0) {
+        return pointsDelta;
+      }
+
+      const accuracyDelta = this.getPlayerAccuracy(b) - this.getPlayerAccuracy(a);
+      if (accuracyDelta !== 0) {
+        return accuracyDelta;
+      }
+
+      return (a.shots ?? 0) - (b.shots ?? 0);
+    });
   }
 
   

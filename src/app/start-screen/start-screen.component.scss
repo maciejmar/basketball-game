@@ -1,97 +1,184 @@
 .start-screen {
-    display: flex;
-    flex-direction: column;
+  --panel-bg: rgba(14, 19, 33, 0.82);
+  --panel-border: rgba(255, 255, 255, 0.14);
+  --text-main: #f6f2e8;
+  --text-muted: rgba(246, 242, 232, 0.78);
+  --accent: #ff7a00;
+  --accent-dark: #cc5400;
+  --danger: #c63f2f;
+
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 3rem;
+  background:
+    radial-gradient(circle at top left, rgba(255, 122, 0, 0.45), transparent 26%),
+    radial-gradient(circle at bottom left, rgba(241, 196, 15, 0.28), transparent 22%),
+    linear-gradient(115deg, rgba(6, 10, 18, 0.92), rgba(16, 27, 44, 0.74)),
+    url('../../assets/basket-shots-advertising.jpg') no-repeat center center;
+  background-size: cover;
+  color: var(--text-main);
+}
+
+.screen-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.52) 0%, rgba(0, 0, 0, 0.12) 48%, rgba(0, 0, 0, 0.68) 100%),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.03) 0,
+      rgba(255, 255, 255, 0.03) 14px,
+      transparent 14px,
+      transparent 28px
+    );
+}
+
+.hero-panel {
+  position: relative;
+  z-index: 1;
+  width: min(28rem, 100%);
+  padding: 2rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 2rem;
+  background: var(--panel-bg);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+}
+
+.brand-kicker {
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #ffd166;
+}
+
+.brand-title {
+  margin: 0;
+  font-family: 'Impact', Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  font-size: clamp(2.8rem, 6vw, 4.8rem);
+  line-height: 0.94;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.brand-copy {
+  margin: 1rem 0 1.75rem;
+  max-width: 24rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.menu-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+}
+
+.menu-button {
+  width: 100%;
+  min-height: 3.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 1rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  color: var(--text-main);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.14s ease, border-color 0.14s ease, background 0.14s ease;
+
+  &:active {
+    transform: translateY(1px) scale(0.99);
+  }
+}
+
+.menu-button-primary {
+  border-color: rgba(255, 122, 0, 0.55);
+  background: linear-gradient(180deg, var(--accent), var(--accent-dark));
+  box-shadow: 0 12px 24px rgba(255, 122, 0, 0.28);
+}
+
+.menu-button-danger {
+  background: linear-gradient(180deg, #db5a49, var(--danger));
+  border-color: rgba(219, 90, 73, 0.5);
+}
+
+.difficulty-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin: 0.2rem 0 0.4rem;
+}
+
+.difficulty-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.difficulty-select {
+  width: 100%;
+  min-height: 3.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 1rem;
+  background: rgba(5, 11, 20, 0.72);
+  color: var(--text-main);
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0 1rem;
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.menu-button-small {
+  min-height: 3.2rem;
+  font-size: 0.9rem;
+}
+
+.volume-dock {
+  position: absolute;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  background: rgba(9, 15, 24, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 900px) {
+  .start-screen {
     justify-content: center;
-    height: 100vh;
-    background: url('../../assets/basket-shots-advertising.jpg') no-repeat center center;
-    background-size: cover;
-    text-align: center;
-    background-color: #000; // Fallback background color to help debug
-  
-    .menu-card {
-      background-color: rgba(255, 255, 255, 0.5); // Half transparent background
-      border: none;
-      margin-left:50%;
-      margin-top:13%;
-      margin-bottom: 13%;
-      display:flex;
-      transition: background-color 2s; // Transition for background color change
-      animation: changeBackground 5s infinite;
-      width:20%;
-  
-      .card-body {
-        text-align: center;
-        display:flex;
-        flex-direction: column;
-        justify-content: center;
-        
-  
-        .card-title {
-          margin: 2%;
-          font-size: 1.5em;
-          color: #9ea881;
-        }
-  
-        .btn {
-          margin: 1%;
-          padding: 2% 3%;
-          font-size: 1em;
-          color: #fff;
-          transition: background-color 0.3s;
-          &:hover {
-            color: #fff;
-          }
-  
-          &.btn-primary {
-            background-color: #007bff;
-            border: none;
-            &:hover {
-              background-color: #0056b3;
-            }
-          }
-  
-          &.btn-danger {
-            background-color: #ff4d4d;
-            border: none;
-            &:hover {
-              background-color: #cc0000;
-            }
-          }
-        }
-      }
-    }
-  }
-  
-  
-  // Animation for changing background color
-  @keyframes changeBackground {
-    0% {
-      background-color: rgba(255, 255, 255, 0.5);
-    }
-    25% {
-      background-color: rgba(255, 200, 200, 0.5);
-    }
-    50% {
-      background-color: rgba(200, 255, 200, 0.5);
-    }
-    75% {
-      background-color: rgba(200, 200, 255, 0.5);
-    }
-    100% {
-      background-color: rgba(255, 255, 255, 0.5);
-    }
-  }
-  .form-select{
-    size:10%;
-  }
-  .volume-card{
-    max-width:10%;
-    max-height:5%;
-    margin-left:90%;
-    margin-bottom:0%;
-    opacity:0.6;
-
+    padding: 1.25rem;
   }
 
-  
-  
+  .hero-panel {
+    width: min(100%, 32rem);
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .menu-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .volume-dock {
+    right: 0.75rem;
+    bottom: 0.75rem;
+    padding: 0.6rem 0.8rem;
+  }
+}
