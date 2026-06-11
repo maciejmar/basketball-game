@@ -67,6 +67,7 @@ export class GameComponent implements OnInit, OnDestroy {
   private bounceSound: HTMLAudioElement | null = null;
   private rimSound: HTMLAudioElement | null = null;
   private scoreSound: HTMLAudioElement | null = null;
+  private activeSoundEffects = new Set<HTMLAudioElement>();
   private resetPending = false;
   private userInteracted = false;
   private ballExitedTop = false;
@@ -89,6 +90,7 @@ export class GameComponent implements OnInit, OnDestroy {
   private shotTimer: any = null;
   private shotDuration = 5000; // 5 seconds in milliseconds
   private ballHasBeenInMotion = false;
+  private readonly audioInitHandler = () => this.initializeAudio();
 
   public currentPlayerToDisplay = '';
   public currentTeamToDisplay = '';
@@ -167,6 +169,8 @@ export class GameComponent implements OnInit, OnDestroy {
       clearTimeout(this.shotTimer);
       this.shotTimer = null;
     }
+    this.removeAudioInitializationListeners();
+    this.stopAllSounds();
   }
 
   async loadTeams() {
@@ -280,9 +284,8 @@ export class GameComponent implements OnInit, OnDestroy {
       }
     });
 
-    window.addEventListener('click', () => this.initializeAudio());
-    window.addEventListener('keydown', () => this.initializeAudio());
-    window.addEventListener('touchstart', () => this.initializeAudio());
+    window.addEventListener('pointerdown', this.audioInitHandler, { passive: true });
+    window.addEventListener('keydown', this.audioInitHandler);
   }
 
   initializeEventListeners() {
@@ -304,11 +307,16 @@ export class GameComponent implements OnInit, OnDestroy {
   initializeAudio() {
     if (!this.userInteracted) {
       this.userInteracted = true;
+      this.removeAudioInitializationListeners();
       console.log('audio initializing');
       this.swooshSound = new Audio('assets/swooh.ogg');
       this.bounceSound = new Audio('assets/bounce.ogg');
       this.rimSound = new Audio('assets/rim.ogg');
       this.scoreSound = new Audio('assets/score.ogg');
+      [this.swooshSound, this.bounceSound, this.rimSound, this.scoreSound].forEach(sound => {
+        sound.preload = 'auto';
+        sound.load();
+      });
 
       // Set initial volume based on the service
       const initialVolume = this.volumeService.getVolume();
@@ -447,8 +455,19 @@ onCanvasClick(event: MouseEvent) {
   
 
   playSound(sound: HTMLAudioElement) {
-    sound.currentTime = 0;
-    sound.play().catch((error) => {
+    if (!this.userInteracted) {
+      return;
+    }
+
+    const effect = sound.cloneNode(true) as HTMLAudioElement;
+    effect.volume = this.volumeService.getVolume();
+    effect.preload = 'auto';
+    this.activeSoundEffects.add(effect);
+    effect.addEventListener('ended', () => {
+      this.activeSoundEffects.delete(effect);
+    }, { once: true });
+    effect.play().catch((error) => {
+      this.activeSoundEffects.delete(effect);
       console.error('Error playing sound:', error);
     });
   }
@@ -1302,6 +1321,16 @@ onCanvasClick(event: MouseEvent) {
       this.scoreSound.pause();
       this.scoreSound.currentTime = 0;
     }
+    this.activeSoundEffects.forEach(sound => {
+      sound.pause();
+      sound.currentTime = 0;
+    });
+    this.activeSoundEffects.clear();
+  }
+
+  private removeAudioInitializationListeners() {
+    window.removeEventListener('pointerdown', this.audioInitHandler);
+    window.removeEventListener('keydown', this.audioInitHandler);
   }
 
   private computerShoots() {

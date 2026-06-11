@@ -92,7 +92,6 @@ export class SummaryComponent implements OnInit {
       .sort((a, b) => this.getAccuracy(b) - this.getAccuracy(a))[0] ?? null;
   }
 
-
   ngOnInit(): void {
     this.loadGameSummary();
     this.initializeBackgroundMusic();
@@ -176,7 +175,6 @@ export class SummaryComponent implements OnInit {
     this.backgroundMusic.loop = true; // Set to loop if desired
     // Set initial volume based on the service
     this.backgroundMusic.volume = this.volumeService.getVolume();
-    this.volumeService.setVolume(0)
     // Begin playback when user interacts
     document.addEventListener('click', this.startMusicOnUserInteraction);
     document.addEventListener('keydown', this.startMusicOnUserInteraction);
