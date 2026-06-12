@@ -91,6 +91,7 @@ export class GameComponent implements OnInit, OnDestroy {
   private shotDuration = 5000; // 5 seconds in milliseconds
   private ballHasBeenInMotion = false;
   private readonly audioInitHandler = () => this.initializeAudio();
+  private readonly idleDribbleFloorOffset = 8;
 
   public currentPlayerToDisplay = '';
   public currentTeamToDisplay = '';
@@ -968,13 +969,14 @@ onCanvasClick(event: MouseEvent) {
       }
     }
   
+    const idleDribblePosition = this.getIdleDribblePosition(canvasHeight, timestamp);
+
     if (this.charging && this.ball.x === this.initialBallPosition.x) {
-      const playerImage = this.playerImages[this.playerState];
-      if (playerImage) {
-        const playerWidth = playerImage.width * 0.7;
-        const playerHeight = playerImage.height * 0.7;
-        this.ball.y = canvasHeight - playerHeight - this.ball.radius - 10 + 45;
-      }
+      this.ball.x = idleDribblePosition.x;
+      this.ball.y = idleDribblePosition.topY;
+    } else if (!this.shotInProgress) {
+      this.ball.x = idleDribblePosition.x;
+      this.ball.y = idleDribblePosition.y;
     } else {
       this.ball.x += this.ball.velX * elapsed * 60;
       this.ball.y += this.ball.velY * elapsed * 60;
@@ -1065,22 +1067,21 @@ onCanvasClick(event: MouseEvent) {
     this.ctx.drawImage(this.mockBasketUpImage, this.basket.x - basketUpWidth / 2, this.basket.y - basketUpHeight + shiftBetweenBasketUPandBasketDown, basketUpWidth * 1.7, basketUpHeight * 3.4);
 
     const playerImage = this.playerImages[this.playerState];
+    const renderIdleBallBehindPlayer = !this.shotInProgress && !this.shaking;
+
+    if (renderIdleBallBehindPlayer) {
+      this.drawBall();
+    }
+
     if (playerImage) {
       const playerWidth = playerImage.width * 0.7;
       const playerHeight = playerImage.height * 0.7;
-      this.ctx.drawImage(playerImage, 20, canvasHeight - playerHeight - 10, playerWidth, playerHeight);
+      const idlePose = this.getIdlePlayerPose(canvasHeight, timestamp, playerWidth, playerHeight);
+      this.ctx.drawImage(playerImage, idlePose.x, idlePose.y, idlePose.width, idlePose.height);
     }
 
-    if (this.shaking && this.shakeStartTime !== null) {
-      const elapsedTime = performance.now() - this.shakeStartTime;
-      if (elapsedTime < this.shakeDuration) {
-        const shakeOffset = Math.sin(elapsedTime / 50) * this.shakeAmplitude;
-        this.ctx.drawImage(this.ballImage, this.ball.x - this.ball.radius + shakeOffset, this.ball.y - this.ball.radius, this.ball.radius * 2.4, this.ball.radius * 2.4);
-      } else {
-        this.ctx.drawImage(this.ballImage, this.ball.x - this.ball.radius, this.ball.y - this.ball.radius, this.ball.radius * 2.4, this.ball.radius * 2.4);
-      }
-    } else {
-      this.ctx.drawImage(this.ballImage, this.ball.x - this.ball.radius, this.ball.y - this.ball.radius, this.ball.radius * 2.4, this.ball.radius * 2.4);
+    if (!renderIdleBallBehindPlayer) {
+      this.drawBall();
     }
     this.ctx.globalAlpha = 0;
     this.ctx.drawImage(this.basketDownImage, this.basket.x - basketDownWidth / 2, this.basket.y, basketDownWidth, basketDownHeight);
@@ -1326,6 +1327,91 @@ onCanvasClick(event: MouseEvent) {
       sound.currentTime = 0;
     });
     this.activeSoundEffects.clear();
+  }
+
+  private drawBall() {
+    if (!this.ctx || !this.ballImage) {
+      return;
+    }
+
+    if (this.shaking && this.shakeStartTime !== null) {
+      const elapsedTime = performance.now() - this.shakeStartTime;
+      if (elapsedTime < this.shakeDuration) {
+        const shakeOffset = Math.sin(elapsedTime / 50) * this.shakeAmplitude;
+        this.ctx.drawImage(
+          this.ballImage,
+          this.ball.x - this.ball.radius + shakeOffset,
+          this.ball.y - this.ball.radius,
+          this.ball.radius * 2.4,
+          this.ball.radius * 2.4
+        );
+        return;
+      }
+    }
+
+    this.ctx.drawImage(
+      this.ballImage,
+      this.ball.x - this.ball.radius,
+      this.ball.y - this.ball.radius,
+      this.ball.radius * 2.4,
+      this.ball.radius * 2.4
+    );
+  }
+
+  private getIdleDribblePosition(canvasHeight: number, timestamp: number) {
+    const playerImage = this.playerImages[this.playerState] ?? this.playerImages['player_4'];
+    const playerWidth = (playerImage?.width ?? 180) * 0.7;
+    const playerHeight = (playerImage?.height ?? 360) * 0.7;
+    const idlePose = this.getIdlePlayerPose(canvasHeight, timestamp, playerWidth, playerHeight);
+    const playerX = idlePose.x;
+    const playerY = idlePose.y;
+    const poseHeight = idlePose.height;
+    const poseWidth = idlePose.width;
+
+    const ballX = playerX + poseWidth * 0.72;
+    const handY = playerY + poseHeight * 0.43;
+    const topY = handY + this.ball.radius * 0.95;
+    const bottomY = canvasHeight - this.ball.radius - this.idleDribbleFloorOffset;
+    const travel = Math.max(12, bottomY - topY);
+    const bounceProgress = (Math.sin(timestamp * 0.008) + 1) / 2;
+    const easedProgress = 1 - Math.pow(1 - bounceProgress, 2);
+    const ballY = topY + travel * easedProgress;
+
+    this.initialBallPosition.x = ballX;
+
+    return {
+      x: ballX,
+      y: ballY,
+      topY,
+    };
+  }
+
+  private getIdlePlayerPose(canvasHeight: number, timestamp: number, baseWidth: number, baseHeight: number) {
+    const playerX = 20;
+    const groundY = canvasHeight - 10;
+
+    if (this.shotInProgress) {
+      return {
+        x: playerX,
+        y: groundY - baseHeight,
+        width: baseWidth,
+        height: baseHeight,
+      };
+    }
+
+    const bounceProgress = (Math.sin(timestamp * 0.008) + 1) / 2;
+    const easedProgress = 1 - Math.pow(1 - bounceProgress, 2);
+    const heightScale = 1 - easedProgress * 0.035;
+    const widthScale = 1 + easedProgress * 0.018;
+    const scaledWidth = baseWidth * widthScale;
+    const scaledHeight = baseHeight * heightScale;
+
+    return {
+      x: playerX - (scaledWidth - baseWidth) / 2,
+      y: groundY - scaledHeight,
+      width: scaledWidth,
+      height: scaledHeight,
+    };
   }
 
   private removeAudioInitializationListeners() {
