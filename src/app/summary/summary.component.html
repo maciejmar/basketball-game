@@ -1,5 +1,36 @@
 <div class="summary-container">
   <section class="summary-shell">
+    <aside class="summary-sidebar">
+      <button
+        class="summary-icon-button"
+        type="button"
+        aria-label="Return to menu"
+        (click)="goToMenu()"
+      >
+        &#8592;
+      </button>
+      <button
+        class="summary-icon-button"
+        type="button"
+        aria-label="Scroll down"
+        [class.summary-icon-button-disabled]="!canScrollDown"
+        [disabled]="!canScrollDown"
+        (click)="scrollSummary('down')"
+      >
+        &#8595;
+      </button>
+      <button
+        class="summary-icon-button"
+        type="button"
+        aria-label="Scroll up"
+        [class.summary-icon-button-disabled]="!canScrollUp"
+        [disabled]="!canScrollUp"
+        (click)="scrollSummary('up')"
+      >
+        &#8593;
+      </button>
+    </aside>
+
     <div class="summary-scroller" #summaryScroller (scroll)="onSummaryScroll()">
       <section class="summary-screen summary-screen-overview">
         <div class="summary-hero">
@@ -30,78 +61,65 @@
         </div>
       </section>
 
-      <section class="summary-screen summary-screen-stats">
-        <div class="tables-grid">
-          <section class="team-card">
-            <div class="team-card-header">
-              <h2>{{ team1.name }}</h2>
-              <div class="team-total">{{ team1Points }} pts</div>
-            </div>
+      <section class="summary-screen summary-screen-team">
+        <section class="team-card team-card-single">
+          <div class="team-card-header">
+            <h2>{{ team1.name }}</h2>
+            <div class="team-total">{{ team1Points }} pts</div>
+          </div>
 
-            <table>
-              <thead>
-                <tr>
-                  <th>Player</th>
-                  <th>Shots</th>
-                  <th>Points</th>
-                  <th>Accuracy</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let player of team1.players">
-                  <td>{{ player.name }}</td>
-                  <td>{{ player.shots || 0 }}</td>
-                  <td>{{ player.points || 0 }}</td>
-                  <td>{{ getAccuracy(player) }}%</td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
+          <table>
+            <thead>
+              <tr>
+                <th>Player</th>
+                <th>Shots</th>
+                <th>Points</th>
+                <th>Accuracy</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let player of team1.players">
+                <td>{{ player.name }}</td>
+                <td>{{ player.shots || 0 }}</td>
+                <td>{{ player.points || 0 }}</td>
+                <td>{{ getAccuracy(player) }}%</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      </section>
 
-          <section class="team-card">
-            <div class="team-card-header">
-              <h2>{{ team2.name }}</h2>
-              <div class="team-total">{{ team2Points }} pts</div>
-            </div>
+      <section class="summary-screen summary-screen-team">
+        <section class="team-card team-card-single">
+          <div class="team-card-header">
+            <h2>{{ team2.name }}</h2>
+            <div class="team-total">{{ team2Points }} pts</div>
+          </div>
 
-            <table>
-              <thead>
-                <tr>
-                  <th>Player</th>
-                  <th>Shots</th>
-                  <th>Points</th>
-                  <th>Accuracy</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let player of team2.players">
-                  <td>{{ player.name }}</td>
-                  <td>{{ player.shots || 0 }}</td>
-                  <td>{{ player.points || 0 }}</td>
-                  <td>{{ getAccuracy(player) }}%</td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
-        </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Player</th>
+                <th>Shots</th>
+                <th>Points</th>
+                <th>Accuracy</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let player of team2.players">
+                <td>{{ player.name }}</td>
+                <td>{{ player.shots || 0 }}</td>
+                <td>{{ player.points || 0 }}</td>
+                <td>{{ getAccuracy(player) }}%</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
 
         <div class="summary-actions">
-          <button class="summary-button summary-button-secondary" (click)="goToMenu()">Return to Menu</button>
           <button class="summary-button summary-button-danger" (click)="quitApp()">Quit</button>
         </div>
       </section>
     </div>
-
-    <button
-      class="summary-arrow"
-      type="button"
-      [attr.aria-label]="arrowLabel"
-      (click)="scrollSummary(arrowDirection)"
-    >
-      <span class="summary-arrow-icon" [class.summary-arrow-icon-up]="arrowDirection === 'up'">
-        {{ arrowDirection === 'up' ? '↑' : '↓' }}
-      </span>
-      <span class="summary-arrow-text">{{ arrowLabel }}</span>
-    </button>
   </section>
 </div>

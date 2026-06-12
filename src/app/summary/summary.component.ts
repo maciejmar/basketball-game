@@ -273,7 +273,10 @@ export class SummaryComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    const nextIndex = direction === 'down' ? 1 : 0;
+    const nextIndex =
+      direction === 'down'
+        ? Math.min(this.activeSectionIndex + 1, 2)
+        : Math.max(this.activeSectionIndex - 1, 0);
     const sections = Array.from(scroller.querySelectorAll<HTMLElement>('.summary-screen'));
     const targetSection = sections[nextIndex];
     if (!targetSection) {
@@ -289,7 +292,15 @@ export class SummaryComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get arrowLabel(): string {
-    return this.activeSectionIndex > 0 ? 'Back to awards' : 'See full stats';
+    return this.activeSectionIndex > 0 ? 'Scroll up' : 'Scroll down';
+  }
+
+  get canScrollUp(): boolean {
+    return this.activeSectionIndex > 0;
+  }
+
+  get canScrollDown(): boolean {
+    return this.activeSectionIndex < 2;
   }
 
   private updateActiveSection(): void {

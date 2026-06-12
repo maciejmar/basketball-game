@@ -92,6 +92,7 @@ export class GameComponent implements OnInit, OnDestroy {
   private ballHasBeenInMotion = false;
   private readonly audioInitHandler = () => this.initializeAudio();
   private readonly idleDribbleFloorOffset = 8;
+  private readonly idleDribbleSpeed = 0.011;
 
   public currentPlayerToDisplay = '';
   public currentTeamToDisplay = '';
@@ -972,8 +973,9 @@ onCanvasClick(event: MouseEvent) {
     const idleDribblePosition = this.getIdleDribblePosition(canvasHeight, timestamp);
 
     if (this.charging && this.ball.x === this.initialBallPosition.x) {
-      this.ball.x = idleDribblePosition.x;
-      this.ball.y = idleDribblePosition.topY;
+      const chargingBallPosition = this.getChargingBallPosition(canvasHeight);
+      this.ball.x = chargingBallPosition.x;
+      this.ball.y = chargingBallPosition.y;
     } else if (!this.shotInProgress) {
       this.ball.x = idleDribblePosition.x;
       this.ball.y = idleDribblePosition.y;
@@ -1370,10 +1372,10 @@ onCanvasClick(event: MouseEvent) {
 
     const ballX = playerX + poseWidth * 0.72;
     const handY = playerY + poseHeight * 0.43;
-    const topY = handY + this.ball.radius * 0.95;
+    const topY = handY + this.ball.radius * 1.45;
     const bottomY = canvasHeight - this.ball.radius - this.idleDribbleFloorOffset;
     const travel = Math.max(12, bottomY - topY);
-    const bounceProgress = (Math.sin(timestamp * 0.008) + 1) / 2;
+    const bounceProgress = (Math.sin(timestamp * this.idleDribbleSpeed) + 1) / 2;
     const easedProgress = 1 - Math.pow(1 - bounceProgress, 2);
     const ballY = topY + travel * easedProgress;
 
@@ -1383,6 +1385,16 @@ onCanvasClick(event: MouseEvent) {
       x: ballX,
       y: ballY,
       topY,
+    };
+  }
+
+  private getChargingBallPosition(canvasHeight: number) {
+    const playerImage = this.playerImages[this.playerState] ?? this.playerImages['player_4'];
+    const playerHeight = (playerImage?.height ?? 360) * 0.7;
+
+    return {
+      x: this.initialBallXPosition,
+      y: canvasHeight - playerHeight - this.ball.radius - 10 + 45,
     };
   }
 
@@ -1399,7 +1411,7 @@ onCanvasClick(event: MouseEvent) {
       };
     }
 
-    const bounceProgress = (Math.sin(timestamp * 0.008) + 1) / 2;
+    const bounceProgress = (Math.sin(timestamp * this.idleDribbleSpeed) + 1) / 2;
     const easedProgress = 1 - Math.pow(1 - bounceProgress, 2);
     const heightScale = 1 - easedProgress * 0.035;
     const widthScale = 1 + easedProgress * 0.018;
