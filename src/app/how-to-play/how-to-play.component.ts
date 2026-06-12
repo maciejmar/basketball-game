@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, OnDestroy, ViewChild, Inject, PLATFORM_ID } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, OnInit, PLATFORM_ID, ViewChild } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 
@@ -11,13 +11,15 @@ type TutorialPhase = 'power' | 'angle' | 'shoot' | 'done';
   templateUrl: './how-to-play.component.html',
   styleUrls: ['./how-to-play.component.scss']
 })
-export class HowToPlayComponent implements OnInit, OnDestroy {
+export class HowToPlayComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('tutorialCanvas', { static: true }) tutorialCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('tutorialScroller') tutorialScroller?: ElementRef<HTMLElement>;
 
   private ctx: CanvasRenderingContext2D | null = null;
   public phase: TutorialPhase = 'power';
   public chargePower = 0;
   public angle = 45;
+  public activeSectionIndex = 0;
 
   private ball = { x: 60, y: 650, radius: 18, velX: 0, velY: 0 };
   private basket = { x: 1050, y: 320, width: 110, height: 10 };
@@ -51,21 +53,30 @@ export class HowToPlayComponent implements OnInit, OnDestroy {
     }
   }
 
+  ngAfterViewInit() {
+    this.updateActiveSection();
+  }
+
   private loadImages() {
     const assets: { key: string; src: string }[] = [
-      { key: 'ballImage',         src: 'assets/ball.png' },
-      { key: 'basketUpImage',     src: 'assets/basket_up.png' },
-      { key: 'basketDownImage',   src: 'assets/basket_down.png' },
+      { key: 'ballImage', src: 'assets/ball.png' },
+      { key: 'basketUpImage', src: 'assets/basket_up.png' },
+      { key: 'basketDownImage', src: 'assets/basket_down.png' },
       { key: 'mockBasketUpImage', src: 'assets/mock-basket-up.png' },
       { key: 'mockBasketDownImage', src: 'assets/mock-basket-down.png' },
-      { key: 'backgroundImage',   src: 'assets/background-basketball.png' },
-      { key: 'playerImage',       src: 'assets/player_4.png' },
+      { key: 'backgroundImage', src: 'assets/background-basketball.png' },
+      { key: 'playerImage', src: 'assets/player_4.png' },
     ];
     let loaded = 0;
     assets.forEach(({ key, src }) => {
       const img = new Image();
       img.src = src;
-      const done = () => { (this as any)[key] = img; if (++loaded === assets.length) this.startTutorial(); };
+      const done = () => {
+        (this as any)[key] = img;
+        if (++loaded === assets.length) {
+          this.startTutorial();
+        }
+      };
       img.onload = done;
       img.onerror = done;
     });
@@ -113,79 +124,83 @@ export class HowToPlayComponent implements OnInit, OnDestroy {
       this.ball.velY += this.gravity * elapsed * 60;
     }
 
-    if (!this.ctx) return;
-    const W = this.tutorialCanvas.nativeElement.width;
-    const H = this.tutorialCanvas.nativeElement.height;
+    if (!this.ctx) {
+      return;
+    }
 
-    this.ctx.clearRect(0, 0, W, H);
+    const width = this.tutorialCanvas.nativeElement.width;
+    const height = this.tutorialCanvas.nativeElement.height;
+    this.ctx.clearRect(0, 0, width, height);
 
-    // Background
     if (this.backgroundImage) {
       this.ctx.globalAlpha = 0.3;
-      this.ctx.drawImage(this.backgroundImage, 0, 0, W, H);
+      this.ctx.drawImage(this.backgroundImage, 0, 0, width, height);
       this.ctx.globalAlpha = 1;
     }
 
-    // Basket (back)
     if (this.mockBasketUpImage && this.basketUpImage) {
-      const buw = this.basketUpImage.width * 0.4;
-      const buh = this.basketUpImage.height * 0.4;
-      this.ctx.drawImage(this.mockBasketUpImage, this.basket.x - buw / 2, this.basket.y - buh - 70, buw * 1.7, buh * 3.4);
+      const basketUpWidth = this.basketUpImage.width * 0.4;
+      const basketUpHeight = this.basketUpImage.height * 0.4;
+      this.ctx.drawImage(
+        this.mockBasketUpImage,
+        this.basket.x - basketUpWidth / 2,
+        this.basket.y - basketUpHeight - 70,
+        basketUpWidth * 1.7,
+        basketUpHeight * 3.4
+      );
     }
 
-    // Player
     if (this.playerImage) {
-      const pw = this.playerImage.width * 0.7;
-      const ph = this.playerImage.height * 0.7;
-      this.ctx.drawImage(this.playerImage, 20, H - ph - 10, pw, ph);
+      const playerWidth = this.playerImage.width * 0.7;
+      const playerHeight = this.playerImage.height * 0.7;
+      this.ctx.drawImage(this.playerImage, 20, height - playerHeight - 10, playerWidth, playerHeight);
     }
 
-    // Ball
     if (this.ballImage) {
-      this.ctx.drawImage(this.ballImage,
+      this.ctx.drawImage(
+        this.ballImage,
         this.ball.x - this.ball.radius,
         this.ball.y - this.ball.radius,
         this.ball.radius * 2.4,
-        this.ball.radius * 2.4);
+        this.ball.radius * 2.4
+      );
     }
 
-    // Basket (front)
     if (this.mockBasketDownImage && this.basketUpImage && this.basketDownImage) {
-      const buw = this.basketUpImage.width * 0.4;
-      const buh = this.basketUpImage.height * 0.4;
-      const bdw = this.basketDownImage.width * 0.4;
-      this.ctx.drawImage(this.mockBasketDownImage, this.basket.x - 1 - buw / 2, this.basket.y + 9, bdw * 1.7, buh * 2.8);
+      const basketUpWidth = this.basketUpImage.width * 0.4;
+      const basketUpHeight = this.basketUpImage.height * 0.4;
+      const basketDownWidth = this.basketDownImage.width * 0.4;
+      this.ctx.drawImage(
+        this.mockBasketDownImage,
+        this.basket.x - 1 - basketUpWidth / 2,
+        this.basket.y + 9,
+        basketDownWidth * 1.7,
+        basketUpHeight * 2.8
+      );
     }
 
-    // Power bar background
     this.ctx.fillStyle = 'black';
-    this.ctx.fillRect(1200, 50, 20, H - 100);
-    // Power bar fill
+    this.ctx.fillRect(1200, 50, 20, height - 100);
     this.ctx.fillStyle = 'green';
-    const barH = this.chargePower * 20;
-    this.ctx.fillRect(1200, H - barH - 50, 20, barH);
+    const barHeight = this.chargePower * 20;
+    this.ctx.fillRect(1200, height - barHeight - 50, 20, barHeight);
 
-    // Pulsing arrows on canvas
     const pulse = (Math.sin(timestamp / 250) + 1) / 2;
     const alpha = 0.5 + pulse * 0.5;
 
     if (this.phase === 'power') {
-      // Arrow pointing at power bar
       this.ctx.globalAlpha = alpha;
       this.ctx.fillStyle = '#FFD700';
       this.ctx.font = 'bold 48px Arial';
-      this.ctx.fillText('◀', 1145, H - barH - 30);
-      // Label
+      this.ctx.fillText('<', 1145, height - barHeight - 30);
       this.ctx.font = 'bold 22px Arial';
-      this.ctx.fillStyle = '#FFD700';
-      this.ctx.fillText('Power!', 1050, H - barH - 35);
+      this.ctx.fillText('Power!', 1050, height - barHeight - 35);
       this.ctx.globalAlpha = 1;
     } else if (this.phase === 'angle') {
-      // Arrow pointing at angle display in controls (top right of canvas)
       this.ctx.globalAlpha = alpha;
       this.ctx.fillStyle = '#FFD700';
       this.ctx.font = 'bold 48px Arial';
-      this.ctx.fillText('⬇', 870, 60);
+      this.ctx.fillText('v', 870, 60);
       this.ctx.font = 'bold 22px Arial';
       this.ctx.fillText('Angle!', 830, 90);
       this.ctx.globalAlpha = 1;
@@ -196,16 +211,64 @@ export class HowToPlayComponent implements OnInit, OnDestroy {
     return `rotate(${this.angle + 180}deg)`;
   }
 
-  parseToInt(n: number): number {
-    return Math.round(n);
+  parseToInt(value: number): number {
+    return Math.round(value);
   }
 
   goToMenu() {
     this.router.navigate(['/menu']);
   }
 
+  onTutorialScroll(): void {
+    this.updateActiveSection();
+  }
+
+  scrollTutorial(direction: 'up' | 'down'): void {
+    const scroller = this.tutorialScroller?.nativeElement;
+    if (!scroller) {
+      return;
+    }
+
+    const nextIndex = direction === 'down' ? 1 : 0;
+    const sections = Array.from(scroller.querySelectorAll<HTMLElement>('.tutorial-screen'));
+    const targetSection = sections[nextIndex];
+    if (!targetSection) {
+      return;
+    }
+
+    targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    this.activeSectionIndex = nextIndex;
+  }
+
+  get tutorialArrowDirection(): 'up' | 'down' {
+    return this.activeSectionIndex > 0 ? 'up' : 'down';
+  }
+
+  get tutorialArrowLabel(): string {
+    return this.activeSectionIndex > 0 ? 'Back to demo' : 'Read controls';
+  }
+
   ngOnDestroy() {
     cancelAnimationFrame(this.animFrameId);
-    this.phaseTimers.forEach(t => clearTimeout(t));
+    this.phaseTimers.forEach(timer => clearTimeout(timer));
+  }
+
+  private updateActiveSection(): void {
+    const scroller = this.tutorialScroller?.nativeElement;
+    if (!scroller) {
+      return;
+    }
+
+    const midpoint = scroller.scrollTop + scroller.clientHeight / 2;
+    const sections = Array.from(scroller.querySelectorAll<HTMLElement>('.tutorial-screen'));
+    const currentIndex = sections.findIndex(section => {
+      const top = section.offsetTop;
+      const bottom = top + section.offsetHeight;
+      return midpoint >= top && midpoint < bottom;
+    });
+
+    if (currentIndex >= 0) {
+      this.activeSectionIndex = currentIndex;
+    }
   }
 }

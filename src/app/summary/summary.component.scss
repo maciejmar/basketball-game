@@ -8,9 +8,10 @@
 
   display: flex;
   justify-content: center;
-  padding: 24px;
+  padding: 0;
   position: relative;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   color: var(--text-main);
 }
 
@@ -28,9 +29,37 @@
 
 .summary-shell {
   width: min(1100px, 100%);
+  height: 100vh;
+  position: relative;
+}
+
+.summary-scroller {
+  height: 100%;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+}
+
+.summary-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.summary-screen {
+  min-height: 100vh;
+  padding: 24px 24px 90px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 1.25rem;
+  scroll-snap-align: start;
+}
+
+.summary-screen-overview {
+  justify-content: center;
+}
+
+.summary-screen-stats {
+  justify-content: center;
 }
 
 .summary-hero,
@@ -175,6 +204,7 @@ tbody tr:nth-child(odd) {
   display: flex;
   justify-content: center;
   gap: 1rem;
+  margin-top: auto;
 }
 
 .summary-button {
@@ -198,6 +228,57 @@ tbody tr:nth-child(odd) {
   background: linear-gradient(180deg, #ef6351, var(--danger));
 }
 
+.summary-arrow {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.9rem 1.15rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(10, 15, 24, 0.88);
+  color: var(--text-main);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(10px);
+}
+
+.summary-arrow-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ffbe0b, var(--accent));
+  color: #1b1308;
+  font-size: 1.35rem;
+  font-weight: 900;
+  animation: summaryArrowBounceDown 1.3s ease-in-out infinite;
+}
+
+.summary-arrow-icon-up {
+  animation-name: summaryArrowBounceUp;
+}
+
+.summary-arrow-text {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@keyframes summaryArrowBounceDown {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+@keyframes summaryArrowBounceUp {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
 @media (max-width: 860px) {
   .awards-grid,
   .tables-grid {
@@ -206,8 +287,8 @@ tbody tr:nth-child(odd) {
 }
 
 @media (max-width: 560px) {
-  .summary-container {
-    padding: 16px;
+  .summary-screen {
+    padding: 16px 16px 88px;
   }
 
   .summary-actions {
@@ -222,5 +303,49 @@ tbody tr:nth-child(odd) {
   td {
     padding: 0.75rem 0.55rem;
     font-size: 0.88rem;
+  }
+
+  .summary-arrow {
+    right: 16px;
+    bottom: 16px;
+    padding: 0.8rem 1rem;
+  }
+}
+
+@media (max-height: 540px) and (orientation: landscape) {
+  .summary-screen {
+    justify-content: flex-start;
+    padding-top: 16px;
+    padding-bottom: 78px;
+  }
+
+  .summary-title {
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+  }
+
+  .summary-scoreline {
+    margin-bottom: 0.65rem;
+  }
+
+  .award-card {
+    padding: 1rem;
+  }
+
+  .award-name {
+    font-size: 1.45rem;
+  }
+
+  .team-card-header {
+    padding: 0.85rem 1rem;
+  }
+
+  th,
+  td {
+    padding: 0.65rem 0.7rem;
+  }
+
+  .summary-arrow {
+    bottom: 12px;
+    right: 12px;
   }
 }

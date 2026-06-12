@@ -1,66 +1,102 @@
 <div class="tutorial-container">
+  <div class="tutorial-scroller" #tutorialScroller (scroll)="onTutorialScroll()">
+    <section class="tutorial-screen tutorial-screen-demo">
+      <button class="back-btn" (click)="goToMenu()">&#8592; Back To Menu</button>
 
-  <!-- Canvas area -->
-  <div class="canvas-wrapper">
-    <canvas #tutorialCanvas></canvas>
-  </div>
-
-  <!-- Controls (mirroring game layout) -->
-  <div class="control-rows">
-
-    <div class="controls-bottom">
-      <div class="btn-wrap">
-        <div class="pulse-arrow angle-arrow" [class.active]="phase === 'angle'">⬆</div>
-        <button class="angle-button" disabled>
-          <img src="assets/angleButton.png" class="button-image" alt="Angle">
-        </button>
-      </div>
-    </div>
-
-    <div class="controls">
-
-      <div class="btn-wrap">
-        <div class="pulse-arrow power-arrow" [class.active]="phase === 'power'">⬆</div>
-        <button disabled>
-          <img src="assets/powerButton.png" class="button-image" alt="Power">
-        </button>
+      <div class="canvas-wrapper">
+        <canvas #tutorialCanvas></canvas>
       </div>
 
-      <div class="current-shooting">
-        <div>Team: Team 1</div>
-        <div>Player: Player 1</div>
-        <div>Shots: 0</div>
+      <div class="control-rows">
+        <div class="controls-bottom">
+          <div class="btn-wrap">
+            <div class="pulse-arrow angle-arrow" [class.active]="phase === 'angle'">&#11014;</div>
+            <button class="angle-button" disabled>
+              <img src="assets/angleButton.png" class="button-image" alt="Angle">
+            </button>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="btn-wrap">
+            <div class="pulse-arrow power-arrow" [class.active]="phase === 'power'">&#11014;</div>
+            <button disabled>
+              <img src="assets/powerButton.png" class="button-image" alt="Power">
+            </button>
+          </div>
+
+          <div class="current-shooting">
+            <div>Team: Team 1</div>
+            <div>Player: Player 1</div>
+            <div>Shots: 0</div>
+          </div>
+
+          <button disabled>
+            <img src="assets/scoreButton.png" class="button-image" alt="Scores">
+          </button>
+
+          <button disabled>
+            <img src="assets/infoButton.png" class="button-image" alt="Info">
+          </button>
+
+          <div class="space-before-arrow">.</div>
+          <div class="arrow-indicator" [style.transform]="arrowRotation">&#10148;</div>
+          <div class="angle">{{ parseToInt(angle) }}&deg;</div>
+
+          <button disabled>
+            <img src="assets/quit-button.png" class="button-image" alt="Quit">
+          </button>
+
+          <div class="points">0 : 0</div>
+        </div>
       </div>
 
-      <button disabled>
-        <img src="assets/scoreButton.png" class="button-image" alt="Scores">
-      </button>
+      <div class="phase-label" [ngSwitch]="phase">
+        <span *ngSwitchCase="'power'">Hold the power button to charge your shot.</span>
+        <span *ngSwitchCase="'angle'">Hold the angle button to set shot angle.</span>
+        <span *ngSwitchCase="'shoot'">Watch the ball fly.</span>
+      </div>
+    </section>
 
-      <button disabled>
-        <img src="assets/infoButton.png" class="button-image" alt="Info">
-      </button>
+    <section class="tutorial-screen tutorial-screen-info">
+      <div class="tutorial-card">
+        <div class="tutorial-kicker">Controls Guide</div>
+        <h1>How To Play</h1>
 
-      <div class="space-before-arrow">.</div>
-      <div class="arrow-indicator" [style.transform]="arrowRotation">➛</div>
-      <div class="angle">{{ parseToInt(angle) }}°</div>
+        <div class="tutorial-list">
+          <div class="tutorial-item">
+            <div class="tutorial-item-title">1. Hold power</div>
+            <p>Press and hold the power button to increase shot strength. Release to shoot.</p>
+          </div>
 
-      <button disabled>
-        <img src="assets/quit-button.png" class="button-image" alt="Quit">
-      </button>
+          <div class="tutorial-item">
+            <div class="tutorial-item-title">2. Adjust angle</div>
+            <p>Hold the angle button until the shot arc looks right for the distance.</p>
+          </div>
 
-      <div class="points">0 : 0</div>
+          <div class="tutorial-item">
+            <div class="tutorial-item-title">3. Track the turn</div>
+            <p>Use the HUD to check current team, player and shot count before each attempt.</p>
+          </div>
 
-    </div>
+          <div class="tutorial-item">
+            <div class="tutorial-item-title">4. Score smart</div>
+            <p>Long arc shots can become three-pointers when the ball exits above the hoop before scoring.</p>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 
-  <!-- Phase label -->
-  <div class="phase-label" [ngSwitch]="phase">
-    <span *ngSwitchCase="'power'">Hold the power button to charge your shot!</span>
-    <span *ngSwitchCase="'angle'">Hold the angle button to set shot angle!</span>
-    <span *ngSwitchCase="'shoot'">Watch the ball fly!</span>
-  </div>
-
-  <!-- Back button -->
-  <button class="back-btn" (click)="goToMenu()">← BACK TO MENU</button>
-
+  <button
+    class="tutorial-arrow"
+    type="button"
+    [attr.aria-label]="tutorialArrowLabel"
+    (click)="scrollTutorial(tutorialArrowDirection)"
+  >
+    <span class="tutorial-arrow-icon" [class.tutorial-arrow-icon-up]="tutorialArrowDirection === 'up'">
+      {{ tutorialArrowDirection === 'up' ? '↑' : '↓' }}
+    </span>
+    <span class="tutorial-arrow-text">{{ tutorialArrowLabel }}</span>
+  </button>
 </div>

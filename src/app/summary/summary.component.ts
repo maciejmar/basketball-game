@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // Import FormsModule
@@ -20,10 +20,12 @@ interface Team {
   templateUrl: './summary.component.html',
   styleUrls: ['./summary.component.scss'],
 })
-export class SummaryComponent implements OnInit {
+export class SummaryComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('summaryScroller') summaryScroller?: ElementRef<HTMLElement>;
   summaryMessage: string = '';
   private backgroundMusic: HTMLAudioElement | null = null;
   public isMusicPlaying = false;
+  public activeSectionIndex = 0;
 
   constructor(
     private router: Router, 
@@ -101,6 +103,10 @@ export class SummaryComponent implements OnInit {
       this.backgroundMusic.volume = volume;
     }
   });
+  }
+
+  ngAfterViewInit(): void {
+    this.updateActiveSection();
   }
 
   // Called on "Return to Menu" button click.
@@ -255,6 +261,54 @@ export class SummaryComponent implements OnInit {
 
       return (a.shots ?? 0) - (b.shots ?? 0);
     });
+  }
+
+  onSummaryScroll(): void {
+    this.updateActiveSection();
+  }
+
+  scrollSummary(direction: 'up' | 'down'): void {
+    const scroller = this.summaryScroller?.nativeElement;
+    if (!scroller) {
+      return;
+    }
+
+    const nextIndex = direction === 'down' ? 1 : 0;
+    const sections = Array.from(scroller.querySelectorAll<HTMLElement>('.summary-screen'));
+    const targetSection = sections[nextIndex];
+    if (!targetSection) {
+      return;
+    }
+
+    targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    this.activeSectionIndex = nextIndex;
+  }
+
+  get arrowDirection(): 'up' | 'down' {
+    return this.activeSectionIndex > 0 ? 'up' : 'down';
+  }
+
+  get arrowLabel(): string {
+    return this.activeSectionIndex > 0 ? 'Back to awards' : 'See full stats';
+  }
+
+  private updateActiveSection(): void {
+    const scroller = this.summaryScroller?.nativeElement;
+    if (!scroller) {
+      return;
+    }
+
+    const midpoint = scroller.scrollTop + scroller.clientHeight / 2;
+    const sections = Array.from(scroller.querySelectorAll<HTMLElement>('.summary-screen'));
+    const currentIndex = sections.findIndex(section => {
+      const top = section.offsetTop;
+      const bottom = top + section.offsetHeight;
+      return midpoint >= top && midpoint < bottom;
+    });
+
+    if (currentIndex >= 0) {
+      this.activeSectionIndex = currentIndex;
+    }
   }
 
 }

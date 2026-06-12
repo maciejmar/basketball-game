@@ -1,89 +1,107 @@
 <div class="summary-container">
   <section class="summary-shell">
-    <div class="summary-hero">
-      <div class="summary-kicker">Final Buzzer</div>
-      <h1 class="summary-title">Game Summary</h1>
-      <p class="summary-scoreline">{{ summaryMessage }}</p>
-      <div class="winner-banner">{{ winnerName }}</div>
-    </div>
-
-    <div class="awards-grid">
-      <article class="award-card">
-        <div class="award-label">MVP</div>
-        <div class="award-name">{{ mvp ? mvp.name : 'No player' }}</div>
-        <div class="award-meta">{{ mvp ? mvp.teamName : '-' }}</div>
-      </article>
-
-      <article class="award-card">
-        <div class="award-label">Top Scorer</div>
-        <div class="award-name">{{ topScorer ? topScorer.points || 0 : 0 }} pts</div>
-        <div class="award-meta">{{ topScorer ? topScorer.name : 'No player' }}</div>
-      </article>
-
-      <article class="award-card">
-        <div class="award-label">Best Accuracy</div>
-        <div class="award-name">{{ bestAccuracy ? getAccuracy(bestAccuracy) : 0 }}%</div>
-        <div class="award-meta">{{ bestAccuracy ? bestAccuracy.name : 'No player' }}</div>
-      </article>
-    </div>
-
-    <div class="tables-grid">
-      <section class="team-card">
-        <div class="team-card-header">
-          <h2>{{ team1.name }}</h2>
-          <div class="team-total">{{ team1Points }} pts</div>
+    <div class="summary-scroller" #summaryScroller (scroll)="onSummaryScroll()">
+      <section class="summary-screen summary-screen-overview">
+        <div class="summary-hero">
+          <div class="summary-kicker">Final Buzzer</div>
+          <h1 class="summary-title">Game Summary</h1>
+          <p class="summary-scoreline">{{ summaryMessage }}</p>
+          <div class="winner-banner">{{ winnerName }}</div>
         </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th>Player</th>
-              <th>Shots</th>
-              <th>Points</th>
-              <th>Accuracy</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let player of team1.players">
-              <td>{{ player.name }}</td>
-              <td>{{ player.shots || 0 }}</td>
-              <td>{{ player.points || 0 }}</td>
-              <td>{{ getAccuracy(player) }}%</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
+        <div class="awards-grid">
+          <article class="award-card">
+            <div class="award-label">MVP</div>
+            <div class="award-name">{{ mvp ? mvp.name : 'No player' }}</div>
+            <div class="award-meta">{{ mvp ? mvp.teamName : '-' }}</div>
+          </article>
 
-      <section class="team-card">
-        <div class="team-card-header">
-          <h2>{{ team2.name }}</h2>
-          <div class="team-total">{{ team2Points }} pts</div>
+          <article class="award-card">
+            <div class="award-label">Top Scorer</div>
+            <div class="award-name">{{ topScorer ? topScorer.points || 0 : 0 }} pts</div>
+            <div class="award-meta">{{ topScorer ? topScorer.name : 'No player' }}</div>
+          </article>
+
+          <article class="award-card">
+            <div class="award-label">Best Accuracy</div>
+            <div class="award-name">{{ bestAccuracy ? getAccuracy(bestAccuracy) : 0 }}%</div>
+            <div class="award-meta">{{ bestAccuracy ? bestAccuracy.name : 'No player' }}</div>
+          </article>
         </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th>Player</th>
-              <th>Shots</th>
-              <th>Points</th>
-              <th>Accuracy</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let player of team2.players">
-              <td>{{ player.name }}</td>
-              <td>{{ player.shots || 0 }}</td>
-              <td>{{ player.points || 0 }}</td>
-              <td>{{ getAccuracy(player) }}%</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="summary-actions">
+          <button class="summary-button summary-button-secondary" (click)="goToMenu()">Return to Menu</button>
+          <button class="summary-button summary-button-danger" (click)="quitApp()">Quit</button>
+        </div>
+      </section>
+
+      <section class="summary-screen summary-screen-stats">
+        <div class="tables-grid">
+          <section class="team-card">
+            <div class="team-card-header">
+              <h2>{{ team1.name }}</h2>
+              <div class="team-total">{{ team1Points }} pts</div>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Player</th>
+                  <th>Shots</th>
+                  <th>Points</th>
+                  <th>Accuracy</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let player of team1.players">
+                  <td>{{ player.name }}</td>
+                  <td>{{ player.shots || 0 }}</td>
+                  <td>{{ player.points || 0 }}</td>
+                  <td>{{ getAccuracy(player) }}%</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section class="team-card">
+            <div class="team-card-header">
+              <h2>{{ team2.name }}</h2>
+              <div class="team-total">{{ team2Points }} pts</div>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Player</th>
+                  <th>Shots</th>
+                  <th>Points</th>
+                  <th>Accuracy</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let player of team2.players">
+                  <td>{{ player.name }}</td>
+                  <td>{{ player.shots || 0 }}</td>
+                  <td>{{ player.points || 0 }}</td>
+                  <td>{{ getAccuracy(player) }}%</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+        </div>
       </section>
     </div>
 
-    <div class="summary-actions">
-      <button class="summary-button summary-button-secondary" (click)="goToMenu()">Return to Menu</button>
-      <button class="summary-button summary-button-danger" (click)="quitApp()">Quit</button>
-    </div>
+    <button
+      class="summary-arrow"
+      type="button"
+      [attr.aria-label]="arrowLabel"
+      (click)="scrollSummary(arrowDirection)"
+    >
+      <span class="summary-arrow-icon" [class.summary-arrow-icon-up]="arrowDirection === 'up'">
+        {{ arrowDirection === 'up' ? '↑' : '↓' }}
+      </span>
+      <span class="summary-arrow-text">{{ arrowLabel }}</span>
+    </button>
   </section>
 </div>

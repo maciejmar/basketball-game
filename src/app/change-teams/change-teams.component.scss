@@ -1,50 +1,211 @@
-.change-teams {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-  
-    h1 {
-      margin-bottom: 20px;
-    }
-  
-    .team {
-      margin: 20px 0;
-      width: 100%;
-      max-width: 400px;
-  
-      h2 {
-        margin-bottom: 10px;
-      }
-  
-      div {
-        margin-bottom: 10px;
-  
-        label {
-          margin-right: 10px;
-        }
-  
-        input {
-          padding: 5px;
-          width: 100%;
-        }
-      }
-    }
-  
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 1.2em;
-      color: #fff;
-      background-color: #007bff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-  
-      &:hover {
-        background-color: #0056b3;
-      }
-    }
+.change-teams-page {
+  --surface: rgba(10, 15, 24, 0.84);
+  --border: rgba(255, 255, 255, 0.12);
+  --text-main: #f7f1e3;
+  --text-muted: rgba(247, 241, 227, 0.72);
+  --accent: #ff8c32;
+
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  color: var(--text-main);
+  background:
+    linear-gradient(135deg, rgba(8, 18, 32, 0.9), rgba(33, 17, 9, 0.72)),
+    url('../../assets/basket-shots-advertising.jpg') center/cover no-repeat;
+}
+
+.teams-shell {
+  position: relative;
+  width: min(960px, 100%);
+  height: 100%;
+  margin: 0 auto;
+}
+
+.teams-scroller {
+  height: 100%;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+}
+
+.teams-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.teams-screen {
+  min-height: 100vh;
+  padding: 24px 24px 90px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  scroll-snap-align: start;
+}
+
+.teams-header {
+  text-align: center;
+
+  h1 {
+    margin: 0.3rem 0 0;
+    font-family: 'Impact', Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    font-size: clamp(2rem, 4vw, 3.3rem);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
-  
+
+  p {
+    margin: 0.7rem 0 0;
+    color: var(--text-muted);
+  }
+}
+
+.teams-kicker {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #ffd166;
+}
+
+.team-editor-card {
+  border: 1px solid var(--border);
+  border-radius: 1.6rem;
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
+  padding: 1.2rem;
+}
+
+.team-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.35rem;
+  }
+}
+
+.team-badge {
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ffbe0b, var(--accent));
+  color: #21160b;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-bottom: 0.85rem;
+}
+
+.field-label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.field-input {
+  min-height: 3rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.95rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-main);
+  padding: 0 1rem;
+}
+
+.teams-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.save-button {
+  min-width: 220px;
+  min-height: 3.3rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+  color: #fff;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.screen-arrow {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.9rem 1.15rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(10, 15, 24, 0.88);
+  color: var(--text-main);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(10px);
+}
+
+.screen-arrow-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ffbe0b, var(--accent));
+  color: #1b1308;
+  font-size: 1.35rem;
+  font-weight: 900;
+  animation: screenArrowBounceDown 1.3s ease-in-out infinite;
+}
+
+.screen-arrow-icon-up {
+  animation-name: screenArrowBounceUp;
+}
+
+.screen-arrow-text {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@keyframes screenArrowBounceDown {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+@keyframes screenArrowBounceUp {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@media (max-width: 640px) {
+  .teams-screen {
+    padding: 16px 16px 88px;
+  }
+
+  .screen-arrow {
+    right: 16px;
+    bottom: 16px;
+  }
+}
+
+@media (max-height: 540px) and (orientation: landscape) {
+  .teams-screen {
+    justify-content: flex-start;
+    padding-top: 16px;
+  }
+}
