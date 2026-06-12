@@ -1,11 +1,11 @@
 <div class="start-screen">
   <div class="screen-overlay"></div>
 
-  <section class="hero-panel">
+  <section class="menu-column">
     <div class="brand-kicker">Street Tournament</div>
     <h1 class="brand-title">Basketball Shots</h1>
     <p class="brand-copy">
-      Quick-fire shooting duel with custom teams, local rivalry and clean arcade pacing.
+      Quick-fire shooting duel with custom teams and local rivalry.
     </p>
 
     <div class="menu-panel">
@@ -21,16 +21,17 @@
         </select>
       </label>
 
-      <div class="menu-grid">
-        <button (click)="changeTeams()" class="menu-button menu-button-small">Edit Teams</button>
-        <button (click)="howToPlay()" class="menu-button menu-button-small">How To Play</button>
-      </div>
+      <button (click)="changeTeams()" class="menu-button menu-button-compact">Edit Teams</button>
+      <button (click)="howToPlay()" class="menu-button menu-button-compact">How To Play</button>
+      <button (click)="quitApp()" class="menu-button menu-button-danger menu-button-compact">Quit Game</button>
+    </div>
 
-      <button (click)="quitApp()" class="menu-button menu-button-danger">Quit Game</button>
+    <div class="volume-dock">
+      <app-volume-control></app-volume-control>
     </div>
   </section>
 
-  <div class="volume-dock">
-    <app-volume-control></app-volume-control>
-  </div>
+  <section class="art-panel">
+    <div class="art-frame"></div>
+  </section>
 </div>

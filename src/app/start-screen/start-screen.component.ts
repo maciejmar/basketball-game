@@ -16,16 +16,21 @@ import { VolumeService } from '../services/volume.service';
 export class StartScreenComponent {
   difficulty: string = 'easy';
   private backgroundMusic: HTMLAudioElement | null = null;
+  private menuClickSound: HTMLAudioElement | null = null;
   public isMusicPlaying = false;
   //public musicVolume = 0; // Default volume
   constructor(private router: Router, private volumeService: VolumeService) { }
 
   ngOnInit(): void {
     this.initializeBackgroundMusic();
+    this.initializeMenuClickSound();
     // Subscribe to volume changes
     this.volumeService.volume$.subscribe(volume => {
       if (this.backgroundMusic) {
         this.backgroundMusic.volume = volume;
+      }
+      if (this.menuClickSound) {
+        this.menuClickSound.volume = volume;
       }
     });
   }
@@ -53,6 +58,12 @@ export class StartScreenComponent {
   
   }
 
+  private initializeMenuClickSound(): void {
+    this.menuClickSound = new Audio('assets/sci-fi-click-.wav');
+    this.menuClickSound.preload = 'auto';
+    this.menuClickSound.volume = this.volumeService.getVolume();
+  }
+
   private startMusicOnUserInteraction = () => {
     if (this.backgroundMusic) {
       this.backgroundMusic.play().catch(error => {
@@ -69,6 +80,18 @@ export class StartScreenComponent {
       this.backgroundMusic.pause();
       this.backgroundMusic.currentTime = 0;
     }
+  }
+
+  private playMenuClick(): void {
+    if (!this.menuClickSound) {
+      return;
+    }
+
+    const clickSound = this.menuClickSound.cloneNode(true) as HTMLAudioElement;
+    clickSound.volume = this.volumeService.getVolume();
+    clickSound.play().catch(error => {
+      console.error('Error playing menu click sound:', error);
+    });
   }
   
   toggleMusic(): void {
@@ -87,24 +110,29 @@ export class StartScreenComponent {
   }
 
   startGame() {
+    this.playMenuClick();
     this.stopBackgroundMusic();
     this.router.navigate(['/game']);
   }
 
   playWithComputer() {
+    this.playMenuClick();
     this.stopBackgroundMusic();
     this.router.navigate(['/game'], { state: { playWithComputer: true, difficulty: this.difficulty } });
   }
 
   changeTeams() {
+    this.playMenuClick();
     this.router.navigate(['/changeNames']);
   }
 
   howToPlay() {
+    this.playMenuClick();
     this.router.navigate(['/how-to-play']);
   }
 
   quitApp() {
+    this.playMenuClick();
     if (window.confirm("Are you sure you want to quit?")) {
       App.exitApp();
     }

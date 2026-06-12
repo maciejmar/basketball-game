@@ -1372,7 +1372,7 @@ onCanvasClick(event: MouseEvent) {
 
     const ballX = playerX + poseWidth * 0.72;
     const handY = playerY + poseHeight * 0.43;
-    const topY = handY + this.ball.radius * 1.45;
+    const topY = handY + this.ball.radius * 1.45 + 12;
     const bottomY = canvasHeight - this.ball.radius - this.idleDribbleFloorOffset;
     const travel = Math.max(12, bottomY - topY);
     const bounceProgress = (Math.sin(timestamp * this.idleDribbleSpeed) + 1) / 2;

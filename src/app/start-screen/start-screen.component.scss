@@ -1,6 +1,4 @@
 .start-screen {
-  --panel-bg: rgba(14, 19, 33, 0.82);
-  --panel-border: rgba(255, 255, 255, 0.14);
   --text-main: #f6f2e8;
   --text-muted: rgba(246, 242, 232, 0.78);
   --accent: #ff7a00;
@@ -10,16 +8,11 @@
   position: relative;
   min-height: 100vh;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 3rem;
-  background:
-    radial-gradient(circle at top left, rgba(255, 122, 0, 0.45), transparent 26%),
-    radial-gradient(circle at bottom left, rgba(241, 196, 15, 0.28), transparent 22%),
-    linear-gradient(115deg, rgba(6, 10, 18, 0.92), rgba(16, 27, 44, 0.74)),
-    url('../../assets/basket-shots-advertising.jpg') no-repeat center center;
-  background-size: cover;
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  align-items: stretch;
+  padding: 1.5rem;
+  background: #030303;
   color: var(--text-main);
 }
 
@@ -27,7 +20,7 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.52) 0%, rgba(0, 0, 0, 0.12) 48%, rgba(0, 0, 0, 0.68) 100%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.22) 0%, rgba(0, 0, 0, 0.04) 48%, rgba(0, 0, 0, 0.14) 100%),
     repeating-linear-gradient(
       -45deg,
       rgba(255, 255, 255, 0.03) 0,
@@ -37,16 +30,35 @@
     );
 }
 
-.hero-panel {
+.menu-column,
+.art-panel {
   position: relative;
   z-index: 1;
-  width: min(28rem, 100%);
-  padding: 2rem;
-  border: 1px solid var(--panel-border);
-  border-radius: 2rem;
-  background: var(--panel-bg);
-  backdrop-filter: blur(16px);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+}
+
+.menu-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.25rem 1rem 1.25rem 1.5rem;
+}
+
+.art-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 1.5rem 1rem 1rem;
+}
+
+.art-frame {
+  width: 100%;
+  height: min(78vh, 760px);
+  border-radius: 1.75rem;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.34)),
+    url('../../assets/basket-shots-advertising.jpg') center/contain no-repeat,
+    #000;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .brand-kicker {
@@ -61,15 +73,15 @@
 .brand-title {
   margin: 0;
   font-family: 'Impact', Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-  font-size: clamp(2.8rem, 6vw, 4.8rem);
+  font-size: clamp(2.5rem, 5.4vw, 4.2rem);
   line-height: 0.94;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .brand-copy {
-  margin: 1rem 0 1.75rem;
-  max-width: 24rem;
+  margin: 0.8rem 0 1.35rem;
+  max-width: 19rem;
   line-height: 1.55;
   color: var(--text-muted);
 }
@@ -77,17 +89,18 @@
 .menu-panel {
   display: flex;
   flex-direction: column;
-  gap: 0.95rem;
+  gap: 0.7rem;
+  width: min(250px, 100%);
 }
 
 .menu-button {
   width: 100%;
-  min-height: 3.5rem;
+  min-height: 2.8rem;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 1rem;
+  border-radius: 0.85rem;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
   color: var(--text-main);
-  font-size: 1rem;
+  font-size: 0.88rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -113,8 +126,8 @@
 .difficulty-panel {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
-  margin: 0.2rem 0 0.4rem;
+  gap: 0.45rem;
+  margin: 0.1rem 0 0.2rem;
 }
 
 .difficulty-label {
@@ -127,58 +140,54 @@
 
 .difficulty-select {
   width: 100%;
-  min-height: 3.25rem;
+  min-height: 2.7rem;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 1rem;
+  border-radius: 0.85rem;
   background: rgba(5, 11, 20, 0.72);
   color: var(--text-main);
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 700;
   padding: 0 1rem;
 }
 
-.menu-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.85rem;
-}
-
-.menu-button-small {
-  min-height: 3.2rem;
-  font-size: 0.9rem;
+.menu-button-compact {
+  min-height: 2.65rem;
 }
 
 .volume-dock {
-  position: absolute;
-  right: 1.25rem;
-  bottom: 1.25rem;
-  z-index: 1;
-  padding: 0.75rem 1rem;
-  border-radius: 999px;
-  background: rgba(9, 15, 24, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 0.9rem;
+  width: fit-content;
 }
 
 @media (max-width: 900px) {
   .start-screen {
-    justify-content: center;
-    padding: 1.25rem;
+    grid-template-columns: 1fr;
+    padding: 1rem;
   }
 
-  .hero-panel {
-    width: min(100%, 32rem);
-    padding: 1.5rem;
+  .menu-column {
+    order: 2;
+    align-items: center;
+    text-align: center;
+    padding: 0.75rem 0.5rem 1rem;
+  }
+
+  .brand-copy {
+    max-width: 24rem;
+  }
+
+  .art-panel {
+    order: 1;
+    padding: 0.5rem;
+  }
+
+  .art-frame {
+    height: min(44vh, 360px);
   }
 }
 
 @media (max-width: 560px) {
-  .menu-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .volume-dock {
-    right: 0.75rem;
-    bottom: 0.75rem;
-    padding: 0.6rem 0.8rem;
+  .menu-panel {
+    width: min(220px, 100%);
   }
 }

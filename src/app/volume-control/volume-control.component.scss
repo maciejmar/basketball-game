@@ -1,21 +1,15 @@
 .volume-control {
-    display: flex;
-    align-items: center;
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 10;
-    color:rgb(39, 73, 73);
-    background-color: none;
-    opacity: 70%;
-    border-radius: 10%;
-  }
-  .volume-icon {
-    width: 30px;
-    height: 30px;
-    cursor: pointer;
-  }
-  input[type="range"] {
-    margin-left: 10px;
-    width: 100px;
-  }
+  display: inline-flex;
+  align-items: center;
+}
+
+.volume-toggle {
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(8, 12, 20, 0.88);
+  color: #f7f1e3;
+  font-size: 1.2rem;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.26);
+}

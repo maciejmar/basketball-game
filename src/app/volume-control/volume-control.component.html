@@ -1,21 +1,11 @@
 <div class="volume-control">
-    <button (click)="toggleMute()">
-      <i
-        *ngIf="isMuted"
-        class="bi bi-volume-off-fill">
-      </i>
-    
-      <i
-        *ngIf="!isMuted"
-        class="bi bi-volume-up-fill">
-    </i>
+  <button
+    type="button"
+    class="volume-toggle"
+    (click)="toggleMute()"
+    [attr.aria-label]="isMuted ? 'Unmute sound' : 'Mute sound'"
+  >
+    <i *ngIf="isMuted" class="bi bi-volume-mute-fill"></i>
+    <i *ngIf="!isMuted" class="bi bi-volume-up-fill"></i>
   </button>
-    <input
-      type="range"
-      min="0"
-      max="1"
-      step="0.01"
-      [value]="volume"
-      (input)="onVolumeChange($event)"
-    />
-  </div>
+</div>
