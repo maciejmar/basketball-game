@@ -28,11 +28,6 @@
             <div class="award-meta">{{ bestAccuracy ? bestAccuracy.name : 'No player' }}</div>
           </article>
         </div>
-
-        <div class="summary-actions">
-          <button class="summary-button summary-button-secondary" (click)="goToMenu()">Return to Menu</button>
-          <button class="summary-button summary-button-danger" (click)="quitApp()">Quit</button>
-        </div>
       </section>
 
       <section class="summary-screen summary-screen-stats">
@@ -88,6 +83,11 @@
               </tbody>
             </table>
           </section>
+        </div>
+
+        <div class="summary-actions">
+          <button class="summary-button summary-button-secondary" (click)="goToMenu()">Return to Menu</button>
+          <button class="summary-button summary-button-danger" (click)="quitApp()">Quit</button>
         </div>
       </section>
     </div>
